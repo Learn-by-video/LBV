@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Science Puzzle</title>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; background-color: #003366; color: white; }
+        .container { background: white; color: black; padding: 20px; border-radius: 10px; max-width: 500px; margin: auto; box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
+    </style>
+    <script>
+        const terms = { "Gravity": "A force that pulls objects towards Earth.", "Atom": "The smallest unit of matter." };
+        function checkMatch() {
+            let selectedTerm = document.getElementById("term").value;
+            document.getElementById("definition").innerText = terms[selectedTerm] || "Select a term!";
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Science Puzzle</h1>
+        <select id="term">
+            <option>Select a term</option>
+            <option>Gravity</option>
+            <option>Atom</option>
+        </select>
+        <p id="definition">Choose a term to see its definition!</p>
+        <button onclick="checkMatch()">Check</button>
+    </div>
+</body>
+</html>

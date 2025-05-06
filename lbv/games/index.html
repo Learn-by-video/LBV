@@ -3,82 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coming Soon - L.B.V.</title>
+    <title>Educational Games - L.B.V.</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
 
     <style>
         html, body {
-            overflow: hidden;
             font-family: Arial, sans-serif;
+            text-align: center;
             margin: 0;
             padding: 0;
-            background-color: #003366; /* Uniform blue theme */
+            background-color: #003366;
             color: white;
-            text-align: center;
         }
-        .container {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        .game-container {
+            background: white;
+            color: black;
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 700px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
         }
-        h1 {
-            font-size: 3em;
+        .game-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 20px;
         }
-        p {
-            font-size: 1.5em;
-        }
-        .loading {
-            font-size: 1.2em;
+        .game-buttons a {
+            background: white;
+            color: #003366;
+            padding: 15px 25px;
+            font-size: 18px;
             font-weight: bold;
-            color: #ffcc00;
-            animation: blink 1s infinite;
+            text-decoration: none;
+            border-radius: 5px;
+            border: 2px solid #003366;
         }
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
+        .game-buttons a:hover {
+            background: #ddd;
         }
-        .version-banner {
-            position: fixed;
-            bottom: 10px;
-            width: 100%;
-            text-align: center;
+        .back-button {
+            margin-top: 20px;
+            padding: 10px 20px;
             font-size: 1em;
-            opacity: 0.7; /* Keep transparent */
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .back-button:hover {
+            background-color: #0056b3;
         }
     </style>
-
-    <script>
-        async function fetchVersion() {
-            try {
-                const response = await fetch("/version.txt?nocache=" + new Date().getTime());
-                const versionText = await response.text();
-                document.getElementById("siteVersion").textContent = versionText.trim();
-            } catch (error) {
-                document.getElementById("siteVersion").textContent = "Unavailable";
-            }
-        }
-
-        window.onload = fetchVersion;
-    </script>
 </head>
 <body>
 
-<div class="container">
-    <h1>🚀 Coming Soon!</h1>
-    <p>Exciting new content is on its way.</p>
-    <p class="loading">Loading... Stay Tuned!</p>
+<header>
+    <h1>🎮 Educational Games 🎮</h1>
+    <p>Test your skills and learn while having fun!</p>
+</header>
+
+<div class="game-container">
+    <div class="game-buttons">
+        <a href="math-game.html">🧮 Math Challenge</a>
+        <a href="history-quiz.html">🏛️ History Quiz</a>
+        <a href="science-puzzle.html">🔬 Science Puzzle</a>
+        <a href="word-builder.html">📚 Word Builder</a>
+    </div>
 </div>
 
-<!-- Transparent Version Banner -->
-<div class="version-banner">
-    Site Version: <span id="siteVersion">Loading...</span>
-</div>
-
-<!-- Botpress Webchat Injected at the End -->
-<script src="https://cdn.botpress.cloud/webchat/v2.4/inject.js"></script>
-<script src="https://files.bpcontent.cloud/2025/05/05/15/20250505153238-7V8LNUEO.js"></script>
+<!-- Back to Main Page Button -->
+<button class="back-button" onclick="window.location.href='/'">Back to Main Page</button>
 
 </body>
 </html>

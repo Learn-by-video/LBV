@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Challenge</title>
+    <style>
+        body { text-align: center; font-family: Arial, sans-serif; background-color: #003366; color: white; }
+        .container { background: white; color: black; padding: 20px; border-radius: 10px; max-width: 500px; margin: auto; box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
+        select, button, input { font-size: 1em; padding: 10px; margin-top: 10px; }
+        button { background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .feedback { font-size: 1.2em; margin-top: 10px; font-weight: bold; }
+        .settings { position: absolute; top: 10px; right: 10px; background: white; color: black; padding: 10px; border-radius: 5px; cursor: pointer; }
+        .settings-menu { display: none; position: absolute; top: 40px; right: 10px; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 0 5px rgba(0,0,0,0.2); text-align: left; }
+        .hidden { display: none; }
+    </style>
+    <script>
+        let showAnswer = false;
+        let difficulty = "Easy";
+        let customMin = 1, customMax = 10;
+
+        function toggleSettings() {
+            let menu = document.getElementById("settings-menu");
+            menu.style.display = menu.style.display === "block" ? "none" : "block";
+        }
+
+        function updateSettings() {
+            showAnswer = document.getElementById("show-answer").checked;
+            difficulty = document.getElementById("difficulty").value;
+
+            let customSettings = document.getElementById("custom-settings");
+            if (difficulty === "Custom") {
+                customMin = parseInt(document.getElementById("custom-min").value) || 1;
+                customMax = parseInt(document.getElementById("custom-max").value) || 100;
+                customSettings.classList.remove("hidden");
+            } else {
+                customSettings.classList.add("hidden");
+            }
+
+            newProblem();
+        }
+
+        function generateNumber() {
+            if (difficulty === "Easy") return Math.floor(Math.random() * 10) + 1;
+            if (difficulty === "Hard") return Math.floor(Math.random() * 100) + 1;
+            return Math.floor(Math.random() * (customMax - customMin + 1)) + customMin; // Custom range
+        }
+
+        function newProblem() {
+            let num1 = generateNumber();
+            let num2 = generateNumber();
+            let selectedOperations = Array.from(document.querySelectorAll("input[type=checkbox]:checked")).map(el => el.value);
+
+            if (selectedOperations.length === 0) {
+                document.getElementById("feedback").innerText = "Please select at least one operation!";
+                return;
+            }
+
+            let operation;
+            do {
+                operation = selectedOperations[Math.floor(Math.random() * selectedOperations.length)];
+            } while (operation === "/" && num2 === 0); // Avoid division by zero
+
+            let correctAnswer;
+            switch (operation) {
+                case "+": correctAnswer = num1 + num2; break;
+                case "-": correctAnswer = num1 - num2; break;
+                case "*": correctAnswer = num1 * num2; break;
+                case "/": correctAnswer = (num1 / num2).toFixed(2); break;
+            }
+
+            document.getElementById("question").innerText = `${num1} ${operation} ${num2} = ?`;
+            document.getElementById("answer").dataset.correct = correctAnswer;
+            document.getElementById("answer").value = ""; // Clear previous answer
+            document.getElementById("feedback").innerText = ""; // Clear feedback
+        }
+
+        function checkAnswer() {
+            let userAnswer = document.getElementById("answer").value;
+            let correctAnswer = document.getElementById("answer").dataset.correct;
+            document.getElementById("feedback").innerText = userAnswer == correctAnswer ? "✅ Correct!" : (showAnswer ? `❌ Wrong, correct answer: ${correctAnswer}` : "❌ Wrong, try again!");
+            
+            document.getElementById("answer").value = ""; // Clear input
+            
+            if (userAnswer == correctAnswer) {
+                setTimeout(newProblem, 1000);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            newProblem();
+            document.getElementById("answer").addEventListener("keypress", (event) => {
+                if (event.key === "Enter") {
+                    checkAnswer();
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Math Challenge</h1>
+
+        <!-- Settings Button -->
+        <div class="settings" onclick="toggleSettings()">⚙️ Settings</div>
+        
+        <!-- Settings Menu -->
+        <div id="settings-menu" class="settings-menu">
+            <p>Select operations:</p>
+            <input type="checkbox" value="+" checked> Addition (+)
+            <input type="checkbox" value="-"> Subtraction (-)
+            <input type="checkbox" value="*"> Multiplication (*)
+            <input type="checkbox" value="/"> Division (/)
+
+            <p><input type="checkbox" id="show-answer"> Show correct answer when wrong</p>
+
+            <p>Select difficulty:</p>
+            <select id="difficulty" onchange="updateSettings()">
+                <option value="Easy">Easy (1-10)</option>
+                <option value="Hard">Hard (1-100)</option>
+                <option value="Custom">Custom Range</option>
+            </select>
+
+            <div id="custom-settings" class="hidden">
+                <p>Set custom difficulty:</p>
+                <input type="number" id="custom-min" placeholder="Min" value="1">
+                <input type="number" id="custom-max" placeholder="Max" value="100">
+            </div>
+
+            <button onclick="updateSettings()">Apply</button>
+        </div>
+
+        <p id="question"></p>
+        <input type="number" id="answer">
+        <button onclick="checkAnswer()">Submit Answer</button>
+        <p id="feedback" class="feedback"></p>
+    </div>
+</body>
+</html>
