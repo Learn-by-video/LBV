@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L.B.V. - Learn by Video</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
+
+    <style>
+        @keyframes glitch {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-2px); }
+            40% { transform: translateX(2px); }
+            60% { transform: translateX(-2px); }
+            80% { transform: translateX(2px); }
+            100% { transform: translateX(0); }
+        }
+
+        html, body {
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #003366; /* Uniform deep blue background */
+            color: white;
+            text-align: center;
+        }
+        header, footer, nav {
+            background: #003366; /* Keep everything else blue */
+        }
+        header {
+            padding: 20px;
+        }
+        header a {
+            text-decoration: none;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        header a:hover {
+            text-decoration: underline;
+        }
+        nav {
+            display: flex;
+            justify-content: center;
+            padding: 15px;
+            flex-wrap: wrap;
+        }
+        .dynamic-buttons {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 15px;
+        }
+        .dynamic-buttons button {
+            background: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            color: #003366;
+        }
+        .dynamic-buttons button:hover {
+            background: #ddd;
+        }
+        main {
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+            background: white; /* Center is now white */
+            color: black; /* Ensure text remains visible */
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        .topic {
+            background: white; /* Ensure topic section is white too */
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.1);
+            color: black; /* Make sure text is readable */
+        }
+        .fact-banner {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ffcc00;
+            animation: glitch 1.5s infinite;
+            margin-bottom: 20px;
+        }
+        .version-banner {
+            position: fixed;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            font-size: 1em;
+            opacity: 0.7; /* Keep transparent */
+        }
+    </style>
+
+    <script>
+        async function fetchVersion() {
+            try {
+                const response = await fetch("/version.txt?nocache=" + new Date().getTime());
+                const versionText = await response.text();
+                document.getElementById("siteVersion").textContent = versionText.trim();
+            } catch (error) {
+                document.getElementById("siteVersion").textContent = "Unavailable";
+            }
+        }
+
+        async function loadTopics() {
+            const today = new Date();
+            const day = today.getDate();  
+
+            try {
+                const response = await fetch(`https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/files/facts.json?nocache=${new Date().getTime()}`); // Forces fresh fetch on refresh
+                const facts = await response.json();
+                const topics = facts[day];
+
+                if (!topics) {
+                    document.getElementById('topic-content').innerText = "No topics available for today.";
+                    return;
+                }
+
+                const buttonContainer = document.getElementById("dynamic-buttons");
+                buttonContainer.innerHTML = ""; // Clear existing buttons
+
+                Object.keys(topics).forEach(topic => {
+                    const button = document.createElement("button");
+                    button.textContent = topic.charAt(0).toUpperCase() + topic.slice(1);
+                    button.onclick = () => loadTopic(topic);
+                    buttonContainer.appendChild(button);
+                });
+            } catch (error) {
+                console.error("Error loading topics:", error);
+                document.getElementById('topic-content').innerText = "Error loading topics.";
+            }
+        }
+
+        async function loadTopic(topic) {
+            const today = new Date();
+            const day = today.getDate();  
+
+            try {
+                const response = await fetch(`https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/files/facts.json?nocache=${new Date().getTime()}`); // Forces fresh fetch on refresh
+                const facts = await response.json();
+                const factText = facts[day]?.[topic];
+
+                document.getElementById('topic-title').innerText = topic.charAt(0).toUpperCase() + topic.slice(1);
+                document.getElementById('topic-content').innerHTML = factText ? formatFact(factText) : "No fact available.";
+            } catch (error) {
+                document.getElementById('topic-content').innerText = "Error loading fact.";
+            }
+        }
+
+        function formatFact(fact) {
+            return fact.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">Source</a>');
+        }
+
+        window.onload = function() {
+            fetchVersion();
+            loadTopics();
+        };
+    </script>
+</head>
+<body>
+
+<header>
+    <a href="index.html">L.B.V. - Learn by Video</a>
+    <p>Your source for verified educational content and daily insights.</p>
+</header>
+
+<!-- Daily Fact Banner with Glitch Effect -->
+<p class="fact-banner">📢 Fresh Facts Added Every Day – Stay Curious! 📢</p>
+
+<!-- Dynamic Buttons for Topics -->
+<div id="dynamic-buttons" class="dynamic-buttons">
+    <!-- Buttons will be added dynamically based on facts.json -->
+</div>
+
+<main>
+    <div class="topic">
+        <h2 id="topic-title">Welcome to L.B.V.</h2>
+        <p id="topic-content">Click a topic to explore in-depth knowledge.</p>
+    </div>
+</main>
+
+<footer>
+    <p>© 2025 L.B.V. - Learn by Video. All rights reserved.</p>
+</footer>
+
+<!-- Transparent Version Banner -->
+<div class="version-banner">
+    Site Version: <span id="siteVersion">Loading...</span>
+</div>
+
+<!-- Botpress Webchat Injected at the End -->
+<script src="https://cdn.botpress.cloud/webchat/v2.4/inject.js"></script>
+<script src="https://files.bpcontent.cloud/2025/05/05/15/20250505153238-7V8LNUEO.js"></script>
+
+</body>
+</html>

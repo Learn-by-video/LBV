@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Viewer</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
+
+    <style>
+        html, body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 20px;
+            background-color: #003366;
+            color: white;
+        }
+        .cookie-container {
+            background: #004488; /* Blue background for contrast */
+            color: white; /* Ensures all text is white */
+            padding: 20px;
+            border-radius: 10px;
+            max-width: 700px;
+            margin: auto;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            text-align: center; /* Center content inside box */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            text-align: center; /* Center text in table */
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid white; /* White borders */
+            color: white; /* Make all text white */
+        }
+        th {
+            background-color: #007bff; /* Blue header */
+        }
+        .button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+
+    <script>
+        function showCookies() {
+            const cookieTable = document.getElementById("cookieTable");
+            const cookieBody = document.getElementById("cookieBody");
+            cookieBody.innerHTML = ""; // Clear previous entries
+
+            if (document.cookie.length === 0) {
+                cookieBody.innerHTML = "<tr><td colspan='2'>No cookies found.</td></tr>";
+                return;
+            }
+
+            const cookies = document.cookie.split("; ");
+            cookies.forEach(cookie => {
+                const [name, value] = cookie.split("=");
+
+                const row = document.createElement("tr");
+                row.innerHTML = `<td>${name}</td><td>${value || "No value"}</td>`;
+                cookieBody.appendChild(row);
+            });
+
+            cookieTable.style.display = "table"; // Show table after loading cookies
+        }
+
+        function clearCookies() {
+            document.cookie.split(";").forEach(cookie => {
+                const eqPos = cookie.indexOf("=");
+                const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            });
+            alert("Cookies cleared! Refresh to see changes.");
+            showCookies();
+        }
+    </script>
+</head>
+<body>
+
+    <h1>Website Cookie Viewer</h1>
+    <p>See all stored cookies on this site.</p>
+
+    <div class="cookie-container">
+        <table id="cookieTable" style="display: none;">
+            <thead>
+                <tr>
+                    <th>Cookie Name</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody id="cookieBody">
+                <!-- Cookies will be displayed here -->
+            </tbody>
+        </table>
+    </div>
+
+    <button class="button" onclick="showCookies()">Show Cookies</button>
+    <button class="button" onclick="clearCookies()">Clear Cookies</button>
+
+</body>
+</html>
