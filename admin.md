@@ -17,3 +17,17 @@ python3 -m http.server 3000
         checkCookie(); // Verify cookie before loading the page
     };
 </script>
+
+<script>
+    async function fetchVersion() {
+        try {
+            const response = await fetch("/version.txt?nocache=" + new Date().getTime());
+            const versionText = await response.text();
+            document.getElementById("siteVersion").textContent = versionText.trim();
+        } catch (error) {
+            document.getElementById("siteVersion").textContent = "Unavailable";
+         }
+    }
+
+    window.onload = fetchVersion;
+</script>

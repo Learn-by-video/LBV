@@ -54,10 +54,30 @@
             border-radius: 5px;
             cursor: pointer;
         }
-        .back-button:hover {
-            background-color: #0056b3;
+        .version-banner {
+            position: fixed;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            font-size: 1em;
+            opacity: 0.7;
         }
     </style>
+
+    <script>
+    async function fetchVersion() {
+        try {
+            const response = await fetch("/version.txt?nocache=" + new Date().getTime());
+            const versionText = await response.text();
+            document.getElementById("siteVersion").textContent = versionText.trim();
+        } catch (error) {
+            document.getElementById("siteVersion").textContent = "Unavailable";
+         }
+    }
+
+    window.onload = fetchVersion;
+    </script>
+
 </head>
 <body>
 
@@ -75,9 +95,17 @@
     </div>
 </div>
 
+<footer>
+    <p>© 2025 L.B.V. - Learn by Video. All rights reserved.</p>
+</footer>
+
 <!-- Back to Main Page Button -->
 <button class="back-button" onclick="window.location.href='/'">Back to Main Page</button>
 
+<!-- Transparent Version Banner -->
+<div class="version-banner">
+    Site Version: <span id="siteVersion">Loading...</span>
+</div>
 
 <!-- Botpress Webchat Injected at the End -->
 <script src="https://cdn.botpress.cloud/webchat/v2.4/inject.js"></script>
