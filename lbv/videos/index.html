@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Educational Videos - L.B.V.</title>
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Learn-by-video/assets/main/Favcon/l-b-v.jpg">
 
     <style>
         html, body {
@@ -16,7 +16,7 @@
             color: white;
         }
         .category {
-            background: #004488; /* Darker shade */
+            background: #004488;
             color: white;
             padding: 15px;
             border-radius: 5px;
@@ -27,11 +27,11 @@
             transition: background 0.3s ease;
         }
         .category:hover {
-            background: #0055aa; /* Slightly brighter on hover */
+            background: #0055aa;
         }
         .subcategory {
             display: none;
-            background: #002244; /* Darker blue */
+            background: #002244;
             color: white;
             padding: 15px;
             margin: 10px auto;
@@ -44,7 +44,7 @@
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px;
             padding: 10px;
         }
         .video-item {
@@ -54,7 +54,7 @@
             border-radius: 5px;
             cursor: pointer;
             text-align: center;
-            width: 200px;
+            width: 250px;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s;
         }
@@ -104,39 +104,45 @@
 
     <script>
         async function loadVideos() {
-            const response = await fetch("https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/videos/videos.json");
-            const data = await response.json();
-            const container = document.getElementById("video-container");
-            container.innerHTML = "";
+            try {
+                const response = await fetch("https://raw.githubusercontent.com/Learn-by-video/assets/main/videos/videos.json?nocache=" + new Date().getTime());
+                if (!response.ok) throw new Error("Failed to fetch videos.json");
 
-            Object.entries(data).forEach(([category, subcategories]) => {
-                const categoryDiv = document.createElement("div");
-                categoryDiv.className = "category";
-                categoryDiv.innerText = category;
-                categoryDiv.onclick = () => toggleSubcategories(category);
+                const data = await response.json();
+                const container = document.getElementById("video-container");
+                container.innerHTML = "";
 
-                container.appendChild(categoryDiv);
+                Object.entries(data).forEach(([category, subcategories]) => {
+                    const categoryDiv = document.createElement("div");
+                    categoryDiv.className = "category";
+                    categoryDiv.innerText = category;
+                    categoryDiv.onclick = () => toggleSubcategories(category);
 
-                Object.entries(subcategories).forEach(([subcatName, videos]) => {
-                    const subcatDiv = document.createElement("div");
-                    subcatDiv.className = "subcategory";
-                    subcatDiv.id = `subcat-${category}-${subcatName}`;
-                    subcatDiv.innerHTML = `<h3>${subcatName}</h3><div class="video-grid"></div>`;
+                    container.appendChild(categoryDiv);
 
-                    videos.forEach(video => {
-                        const videoDiv = document.createElement("div");
-                        videoDiv.className = "video-item";
-                        videoDiv.innerHTML = `
-                            <img src="https://img.youtube.com/vi/${video.id}/0.jpg" alt="${video.title}">
-                            <p>${video.title}</p>
-                        `;
-                        videoDiv.onclick = () => openPopup(video.id);
-                        subcatDiv.querySelector(".video-grid").appendChild(videoDiv);
+                    Object.entries(subcategories).forEach(([subcatName, videos]) => {
+                        const subcatDiv = document.createElement("div");
+                        subcatDiv.className = "subcategory";
+                        subcatDiv.id = `subcat-${category}-${subcatName}`;
+                        subcatDiv.innerHTML = `<h3>${subcatName}</h3><div class="video-grid"></div>`;
+
+                        videos.forEach(video => {
+                            const videoDiv = document.createElement("div");
+                            videoDiv.className = "video-item";
+                            videoDiv.innerHTML = `
+                                <img src="https://img.youtube.com/vi/${video.id}/0.jpg" alt="${video.title}">
+                                <p>${video.title}</p>
+                            `;
+                            videoDiv.onclick = () => openPopup(video.id);
+                            subcatDiv.querySelector(".video-grid").appendChild(videoDiv);
+                        });
+
+                        container.appendChild(subcatDiv);
                     });
-
-                    container.appendChild(subcatDiv);
                 });
-            });
+            } catch (error) {
+                console.error("Error fetching videos.json:", error);
+            }
         }
 
         function toggleSubcategories(category) {
