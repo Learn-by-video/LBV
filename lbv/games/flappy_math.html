@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flappy Math</title>
+    <style>
+        body {
+            margin: 0;
+            text-align: center;
+            background-color: skyblue;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: none;
+        }
+
+        #start-screen {
+            position: absolute;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+        }
+
+        #math-popup {
+            display: none;
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border: 2px solid black;
+            z-index: 1000;
+        }
+
+        #score-counter, #high-score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 24px;
+        }
+
+        #high-score {
+            top: 50px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen">
+        <h1>Flappy Math</h1>
+        <label>Select Operations:</label>
+        <div>
+            <input type="checkbox" id="add" value="+"> Addition (+)
+            <input type="checkbox" id="sub" value="-"> Subtraction (-)
+            <input type="checkbox" id="mul" value="*"> Multiplication (*)
+            <input type="checkbox" id="div" value="/"> Division (/)
+        </div>
+        <label>Select Difficulty:</label>
+        <select id="difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+        </select>
+        <label>Number of Problems:</label>
+        <input type="number" id="problem-count" min="1" max="10" value="3">
+        <button id="start-button" onclick="startGame()">Start</button>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+    <div id="score-counter">Score: 0</div>
+    <div id="high-score">High Score: 0</div>
+
+    <div id="math-popup">
+        <p id="math-question">Solve: 5 + 3 = ?</p>
+        <input type="number" id="math-answer">
+        <button onclick="checkAnswer()">Submit</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const bird = { x: canvas.width / 4, y: canvas.height / 2, radius: 15, velocity: 0 };
+        const gravity = 0.5;
+        const pipeWidth = 50;
+        const minPipeGap = bird.radius * 5;
+        const maxPipeGap = bird.radius * 8;
+        let pipes = [];
+        let gameRunning = false;
+        let gameStarted = false;
+        let paused = false;
+        let selectedOperations = [];
+        let difficultyLevel = "easy";
+        let problemCount = 3;
+        let problemsSolved = 0;
+        let score = 0;
+        let highScore = getCookie("highScore") || 0;
+
+        document.getElementById("high-score").innerText = `High Score: ${highScore}`;
+
+        function startGame() {
+            selectedOperations = Array.from(document.querySelectorAll("input[type=checkbox]:checked")).map(cb => cb.value);
+            difficultyLevel = document.getElementById("difficulty").value;
+            problemCount = parseInt(document.getElementById("problem-count").value);
+
+            if (selectedOperations.length === 0) {
+                alert("Please select at least one operation.");
+                return;
+            }
+
+            document.getElementById("start-screen").style.display = "none";
+            canvas.style.display = "block";
+
+            resetGame();
+            gameRunning = true;
+            generatePipes();
+            updateGame();
+            showMathPopup();
+        }
+
+        function resetGame() {
+            bird.y = canvas.height / 2;
+            bird.velocity = 0; // Reset bird velocity
+            score = 0;
+            pipes = [];
+            problemsSolved = 0; // Reset problem-solving state
+            gameStarted = false; // Ensure the game doesn't start immediately
+            document.getElementById("score-counter").innerText = "Score: 0";
+        }
+
+        function drawBird() {
+            ctx.fillStyle = "yellow";
+            ctx.beginPath();
+            ctx.arc(bird.x, bird.y, bird.radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function drawPipes() {
+            ctx.fillStyle = "green";
+            pipes.forEach(pipe => {
+                ctx.fillRect(pipe.x, 0, pipe.width, pipe.top);
+                ctx.fillRect(pipe.x, pipe.bottom, pipe.width, canvas.height - pipe.bottom);
+            });
+        }
+
+        function generatePipes() {
+            setInterval(() => {
+                const gap = Math.random() * (maxPipeGap - minPipeGap) + minPipeGap;
+                const maxTopHeight = canvas.height - gap - 100;
+                const topHeight = Math.random() * (maxTopHeight - 50) + 50;
+                const bottomHeight = topHeight + gap;
+
+                pipes.push({
+                    x: canvas.width,
+                    width: pipeWidth,
+                    top: topHeight,
+                    bottom: bottomHeight,
+                    passed: false,
+                });
+            }, 2000);
+        }
+
+        function updateGame() {
+            if (!gameRunning || paused) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "skyblue";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (gameStarted) {
+                bird.velocity += gravity;
+                bird.y += bird.velocity;
+
+                pipes.forEach(pipe => {
+                    pipe.x -= 3;
+                    if (!pipe.passed && bird.x > pipe.x + pipe.width) {
+                        pipe.passed = true;
+                        score++;
+                        document.getElementById("score-counter").innerText = `Score: ${score}`;
+                    }
+
+                    if (pipe.x + pipe.width < 0) {
+                        pipes.shift();
+                    }
+                });
+            }
+
+            if (
+                bird.y > canvas.height ||
+                bird.y < 0 ||
+                pipes.some(pipe => bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + pipe.width &&
+                    (bird.y - bird.radius < pipe.top || bird.y + bird.radius > pipe.bottom))
+            ) {
+                endGame();
+                return;
+            }
+
+            drawBird();
+            drawPipes();
+            requestAnimationFrame(updateGame);
+        }
+
+        function endGame() {
+            gameRunning = false;
+            if (score > highScore) {
+                highScore = score;
+                setCookie("highScore", highScore, 365);
+                document.getElementById("high-score").innerText = `High Score: ${highScore}`;
+            }
+            alert("Game Over!");
+            showMenu();
+        }
+
+        function showMenu() {
+            resetGame();
+            document.getElementById("start-screen").style.display = "flex";
+            canvas.style.display = "none";
+        }
+
+        function showMathPopup() {
+            if (problemsSolved >= problemCount) {
+                gameStarted = true;
+                document.getElementById("math-popup").style.display = "none";
+                return;
+            }
+
+            document.getElementById("math-popup").style.display = "block";
+            generateProblem();
+        }
+
+        function generateProblem() {
+            const num1 = generateNumber();
+            const num2 = generateNumber();
+            const operation = selectedOperations[Math.floor(Math.random() * selectedOperations.length)];
+            document.getElementById("math-question").innerText = `Solve: ${num1} ${operation} ${num2} = ?`;
+        }
+
+        function generateNumber() {
+            if (difficultyLevel === "easy") return Math.floor(Math.random() * 10);
+            if (difficultyLevel === "medium") return Math.floor(Math.random() * 50);
+            return Math.floor(Math.random() * 100);
+        }
+
+        function checkAnswer() {
+            const userAnswer = parseFloat(document.getElementById("math-answer").value);
+            const correctAnswer = eval(document.getElementById("math-question").innerText.split(": ")[1].replace(" = ?", ""));
+            document.getElementById("math-answer").value = "";
+
+            if (userAnswer === correctAnswer) {
+                problemsSolved++;
+                showMathPopup();
+            }
+        }
+
+        document.addEventListener("keydown", event => {
+            if (event.code === "Space") {
+                bird.velocity = -8;
+                gameStarted = true;
+            } else if (event.code === "Enter") {
+                checkAnswer();
+            } else if (event.code === "KeyP") {
+                paused = !paused;
+            }
+        });
+
+        function setCookie(name, value, days) {
+            const d = new Date();
+            d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+            document.cookie = `${name}=${value};expires=${d.toUTCString()};path=/`;
+        }
+
+        function getCookie(name) {
+            const cookies = document.cookie.split("; ");
+            for (let i = 0; i < cookies.length; i++) {
+                const [key, value] = cookies[i].split("=");
+                if (key === name) return value;
+            }
+            return null;
+        }
+    </script>
+
+</body>
+</html>
