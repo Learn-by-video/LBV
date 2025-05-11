@@ -60,6 +60,19 @@
 
         #god-mode {
             position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: red;
+            color: white;
+            font-size: 16px;
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+            display: none;
+        }
+
+        #menu-god-mode {
+            position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -73,6 +86,7 @@
 
     <div id="start-screen">
         <h1>Flappy Math</h1>
+        <div id="menu-god-mode">GOD MODE ENABLED</div>
         <label>Select Operations:</label>
         <div>
             <input type="checkbox" id="add" value="+"> Addition (+)
@@ -94,7 +108,7 @@
     <canvas id="gameCanvas"></canvas>
     <div id="score-counter">Score: 0</div>
     <div id="high-score">High Score: 0</div>
-    <div id="god-mode">GOD MODE ENABLED</div>
+    <button id="god-mode" onclick="stopBird()">STOP</button>
 
     <div id="math-popup">
         <p id="math-question">Solve: 5 + 3 = ?</p>
@@ -149,6 +163,7 @@
             }
 
             document.getElementById("start-screen").style.display = "none";
+            document.getElementById("menu-god-mode").style.display = "none";
             document.getElementById("god-mode").style.display = godMode ? "block" : "none";
             canvas.style.display = "block";
 
@@ -258,8 +273,15 @@
         function showMenu() {
             resetGame();
             document.getElementById("start-screen").style.display = "flex";
+            document.getElementById("menu-god-mode").style.display = godMode ? "block" : "none";
             document.getElementById("god-mode").style.display = "none";
             canvas.style.display = "none";
+        }
+
+        function stopBird() {
+            godMode = false;
+            alert("Bird stopped! Game Over.");
+            endGame();
         }
 
         function showMathPopup() {
@@ -302,7 +324,7 @@
                 konamiIndex++;
                 if (konamiIndex === konamiCode.length) {
                     godMode = true; // Enable God Mode
-                    document.getElementById("god-mode").style.display = "block";
+                    document.getElementById("menu-god-mode").style.display = "block";
                     konamiIndex = 0; // Reset Konami Code index
                 }
             } else {
@@ -315,7 +337,10 @@
             } else if (event.code === "Enter") {
                 checkAnswer();
             } else if (event.code === "KeyP") {
-                paused = !paused;
+                paused = !paused; // Toggle pause
+                if (!paused) {
+                    updateGame(); // Resume the game loop when unpaused
+                }
             }
         });
 
