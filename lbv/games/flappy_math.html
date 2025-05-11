@@ -57,6 +57,16 @@
         #high-score {
             top: 50px;
         }
+
+        #god-mode {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+            color: red;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -84,6 +94,7 @@
     <canvas id="gameCanvas"></canvas>
     <div id="score-counter">Score: 0</div>
     <div id="high-score">High Score: 0</div>
+    <div id="god-mode">GOD MODE ENABLED</div>
 
     <div id="math-popup">
         <p id="math-question">Solve: 5 + 3 = ?</p>
@@ -101,8 +112,9 @@
         const bird = { x: canvas.width / 4, y: canvas.height / 2, radius: 15, velocity: 0 };
         const gravity = 0.5;
         const pipeWidth = 50;
-        const minPipeGap = bird.radius * 5;
-        const maxPipeGap = bird.radius * 8;
+        const minPipeGap = bird.radius * 7; // Increased gap size
+        const maxPipeGap = bird.radius * 11; // Increased gap size
+        const pipeSpacing = 400; // Horizontal spacing between pipes
         let pipes = [];
         let gameRunning = false;
         let gameStarted = false;
@@ -113,8 +125,18 @@
         let problemsSolved = 0;
         let score = 0;
         let highScore = getCookie("highScore") || 0;
+        let godMode = false; // God Mode toggle
 
         document.getElementById("high-score").innerText = `High Score: ${highScore}`;
+
+        const konamiCode = [
+            "ArrowUp", "ArrowUp",
+            "ArrowDown", "ArrowDown",
+            "ArrowLeft", "ArrowRight",
+            "ArrowLeft", "ArrowRight",
+            "KeyB", "KeyA"
+        ];
+        let konamiIndex = 0;
 
         function startGame() {
             selectedOperations = Array.from(document.querySelectorAll("input[type=checkbox]:checked")).map(cb => cb.value);
@@ -127,6 +149,7 @@
             }
 
             document.getElementById("start-screen").style.display = "none";
+            document.getElementById("god-mode").style.display = godMode ? "block" : "none";
             canvas.style.display = "block";
 
             resetGame();
@@ -164,18 +187,19 @@
         function generatePipes() {
             setInterval(() => {
                 const gap = Math.random() * (maxPipeGap - minPipeGap) + minPipeGap;
-                const maxTopHeight = canvas.height - gap - 100;
+                const maxTopHeight = canvas.height - gap - 150;
                 const topHeight = Math.random() * (maxTopHeight - 50) + 50;
                 const bottomHeight = topHeight + gap;
 
                 pipes.push({
-                    x: canvas.width,
+                    x: canvas.width + pipeSpacing,
                     width: pipeWidth,
                     top: topHeight,
                     bottom: bottomHeight,
                     passed: false,
+                    collidable: true,
                 });
-            }, 2000);
+            }, 3000); // Pipe generation interval
         }
 
         function updateGame() {
@@ -203,12 +227,14 @@
                 });
             }
 
-            if (
+            if (!godMode && (
                 bird.y > canvas.height ||
                 bird.y < 0 ||
-                pipes.some(pipe => bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + pipe.width &&
-                    (bird.y - bird.radius < pipe.top || bird.y + bird.radius > pipe.bottom))
-            ) {
+                pipes.some(pipe => 
+                    pipe.collidable && bird.x + bird.radius > pipe.x && bird.x - bird.radius < pipe.x + pipe.width &&
+                    (bird.y - bird.radius < pipe.top || bird.y + bird.radius > pipe.bottom)
+                )
+            )) {
                 endGame();
                 return;
             }
@@ -232,6 +258,7 @@
         function showMenu() {
             resetGame();
             document.getElementById("start-screen").style.display = "flex";
+            document.getElementById("god-mode").style.display = "none";
             canvas.style.display = "none";
         }
 
@@ -271,6 +298,17 @@
         }
 
         document.addEventListener("keydown", event => {
+            if (event.code === konamiCode[konamiIndex]) {
+                konamiIndex++;
+                if (konamiIndex === konamiCode.length) {
+                    godMode = true; // Enable God Mode
+                    document.getElementById("god-mode").style.display = "block";
+                    konamiIndex = 0; // Reset Konami Code index
+                }
+            } else {
+                konamiIndex = 0; // Reset if the sequence is broken
+            }
+
             if (event.code === "Space") {
                 bird.velocity = -8;
                 gameStarted = true;
