@@ -2,11 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Word Pong - Fullscreen Version</title>
+  <title>Word Pong - Fullscreen with Mobile Controls</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
   <style>
     /* Reset & Fullscreen Styles */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; }
+    html, body { 
+      width: 100%; 
+      height: 100%; 
+      overflow: hidden; 
+    }
     #gameContainer {
       position: absolute;
       top: 0;
@@ -20,7 +25,7 @@
       width: 100%;
       height: 100%;
     }
-    /* Score Display (optional) */
+    /* Score Display */
     #score {
       position: absolute;
       top: 10px;
@@ -31,16 +36,38 @@
       font-size: 24px;
       z-index: 10;
     }
+    /* Mobile Arrow Controls */
+    #mobileControls {
+      position: absolute;
+      bottom: 5%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      display: none; /* Only visible on touch devices */
+    }
+    #mobileControls button {
+      padding: 20px;
+      font-size: 30px;
+      margin: 0 20px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      background-color: rgba(255, 255, 255, 0.9);
+    }
   </style>
 </head>
 <body>
   <div id="gameContainer">
     <canvas id="gameCanvas"></canvas>
     <div id="score"></div>
+    <div id="mobileControls">
+      <button id="upButton">↑</button>
+      <button id="downButton">↓</button>
+    </div>
   </div>
 
   <script>
-    // Get canvas and context
+    // Get canvas, context and score display.
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     const scoreDisplay = document.getElementById("score");
@@ -49,23 +76,27 @@
     function resizeCanvas() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      // Recalculate positions if desired (here we only reset the AI paddle X)
+      // Adjust positions that depend on canvas dimensions.
       aiX = canvas.width - paddleWidth - 20;
     }
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("load", resizeCanvas);
 
-    // Pong game variables
+    // Pong game variables.
     const paddleWidth = 10;
     const paddleHeight = 100;
     const ballRadius = 10;
     
-    // Initial positions (note: these will be updated on resize as needed)
+    // Player paddle position.
     let playerX = 20;
-    let playerY = canvas.height / 2 - paddleHeight / 2;
-    let aiX = canvas.width - paddleWidth - 20;
-    let aiY = canvas.height / 2 - paddleHeight / 2;
+    // Initially setting player's vertical position in the middle.
+    let playerY = (canvas.height / 2) - (paddleHeight / 2);
     
+    // AI paddle.
+    let aiX = canvas.width - paddleWidth - 20;
+    let aiY = (canvas.height / 2) - (paddleHeight / 2);
+    
+    // Ball starting position and speed.
     let ballX = canvas.width / 2;
     let ballY = canvas.height / 2;
     let ballSpeedX = 6;
@@ -74,7 +105,7 @@
     let playerScore = 0;
     let aiScore = 0;
     
-    // Game Loop
+    // Game Loop.
     function gameLoop() {
       update();
       draw();
@@ -91,25 +122,24 @@
         ballSpeedY = -ballSpeedY;
       }
       
-      // Check paddle collisions.
-      // Player paddle
+      // Check collision with player's paddle.
       if (ballX - ballRadius < playerX + paddleWidth &&
           ballY > playerY && ballY < playerY + paddleHeight) {
         ballSpeedX = -ballSpeedX;
-        // (Optional: You could show a vocabulary word on the paddle here.)
       }
-      // AI paddle
+      
+      // Check collision with AI paddle.
       if (ballX + ballRadius > aiX &&
           ballY > aiY && ballY < aiY + paddleHeight) {
         ballSpeedX = -ballSpeedX;
       }
       
-      // Update AI paddle: simple follow ball (but limit speed)
+      // Simple AI: Move AI paddle toward the ball.
       let aiCenter = aiY + paddleHeight / 2;
       let diff = ballY - aiCenter;
-      aiY += diff * 0.1;
-      
-      // Check for scoring.
+      aiY += diff * 0.1;  // Tune this factor to adjust AI reaction
+
+      // Calculate scoring.
       if (ballX < 0) {
         aiScore++;
         resetBall();
@@ -125,9 +155,7 @@
     function resetBall() {
       ballX = canvas.width / 2;
       ballY = canvas.height / 2;
-      // Reverse ball direction to the scoring side.
-      ballSpeedX = -ballSpeedX;
-      // Optionally, reset speeds to initial values.
+      ballSpeedX = -ballSpeedX; // Send ball to the scoring side.
     }
     
     function draw() {
@@ -148,7 +176,7 @@
       ctx.fill();
     }
     
-    // Keyboard controls for player's paddle.
+    // Keyboard controls for player's paddle. Uses up/down arrow keys.
     window.addEventListener("keydown", (e) => {
       const step = 20;
       if (e.key === "ArrowUp") {
@@ -158,6 +186,65 @@
         playerY += step;
         if (playerY + paddleHeight > canvas.height) playerY = canvas.height - paddleHeight;
       }
+    });
+    
+    // Mobile Controls for Touch Devices.
+    // Show mobile controls only if on a touch device.
+    if ("ontouchstart" in window) {
+      document.getElementById("mobileControls").style.display = "flex";
+    } else {
+      document.getElementById("mobileControls").style.display = "none";
+    }
+    
+    // Variables for continuous movement on long press.
+    let upInterval, downInterval;
+    const mobileButtonInterval = 20; // ms interval for continuous movement.
+    const continuousSpeed = 400; // 400 pixels per second.
+    // How many pixels to move per interval.
+    const movementPerInterval = (continuousSpeed * mobileButtonInterval) / 1000;
+    
+    // Single tap event for touch buttons (moves paddle by 10 pixels).
+    document.getElementById("upButton").addEventListener("click", () => {
+      playerY = Math.max(playerY - 10, 0);
+    });
+    document.getElementById("downButton").addEventListener("click", () => {
+      playerY = Math.min(playerY + 10, canvas.height - paddleHeight);
+    });
+    
+    // Continuous movement on holding "Up".
+    document.getElementById("upButton").addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      if (!upInterval) {
+        upInterval = setInterval(() => {
+          playerY = Math.max(playerY - movementPerInterval, 0);
+        }, mobileButtonInterval);
+      }
+    });
+    document.getElementById("upButton").addEventListener("touchend", () => {
+      clearInterval(upInterval);
+      upInterval = null;
+    });
+    document.getElementById("upButton").addEventListener("touchcancel", () => {
+      clearInterval(upInterval);
+      upInterval = null;
+    });
+    
+    // Continuous movement on holding "Down".
+    document.getElementById("downButton").addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      if (!downInterval) {
+        downInterval = setInterval(() => {
+          playerY = Math.min(playerY + movementPerInterval, canvas.height - paddleHeight);
+        }, mobileButtonInterval);
+      }
+    });
+    document.getElementById("downButton").addEventListener("touchend", () => {
+      clearInterval(downInterval);
+      downInterval = null;
+    });
+    document.getElementById("downButton").addEventListener("touchcancel", () => {
+      clearInterval(downInterval);
+      downInterval = null;
     });
     
     // Start the game loop.

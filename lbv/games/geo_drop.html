@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Geography Drop – Music, Achievements, & Mobile Controls</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
+  <style>
+    /* Basic Reset & Styling */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: sans-serif; background: #f2f2f2; }
+    #gameContainer {
+      position: relative;
+      margin: 20px auto;
+      width: 800px;
+      height: 600px;
+      border: 2px solid #333;
+      overflow: hidden;
+    }
+    canvas { display: block; }
+    /* Gear Icon for Settings */
+    #settingsButton {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 3;
+      font-size: 28px;
+      background: rgba(255, 255, 255, 0.8);
+      border: none;
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: 4px;
+    }
+    /* Overlays & Modal */
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 800px;
+      height: 600px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .overlay button {
+      padding: 10px 20px;
+      font-size: 20px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    .modal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 800px;
+      height: 600px;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 4;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+    .modal-content {
+      background: #444;
+      padding: 20px;
+      border-radius: 8px;
+      width: 300px;
+      text-align: center;
+    }
+    .modal-content label,
+    .modal-content select {
+      display: block;
+      margin: 10px 0;
+      text-align: left;
+    }
+    .modal-content button {
+      padding: 8px 16px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    /* Mobile Arrow Controls */
+    #mobileControls {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 3;
+      display: none; /* Only display on touch devices */
+    }
+    #mobileControls button {
+      padding: 20px;
+      font-size: 30px;
+      margin: 0 20px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: rgba(255, 255, 255, 0.9);
+    }
+    /* Achievement Notification Container */
+    #achievementContainer {
+      position: absolute;
+      right: 10px;
+      top: 50px;
+      z-index: 10;
+    }
+    .achievementBubble {
+      background: rgba(0, 0, 0, 0.7);
+      color: #fff;
+      padding: 10px 15px;
+      margin-bottom: 5px;
+      border-radius: 5px;
+      font-size: 16px;
+      animation: fadeOut 3s forwards;
+    }
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <!-- Gear Icon -->
+    <button id="settingsButton">⚙</button>
+
+    <!-- Start Overlay -->
+    <div id="startOverlay" class="overlay">
+      <h2>Geography Drop</h2>
+      <p>Slide the balloon to catch the correct flag!</p>
+      <button id="startButton">Start Game</button>
+    </div>
+
+    <!-- Game Over Overlay -->
+    <div id="gameOverOverlay" class="overlay" style="display: none;">
+      <h2>Game Over!</h2>
+      <p id="finalScore"></p>
+      <button id="restartButton">Restart</button>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+      <div class="modal-content">
+        <h3>Settings</h3>
+        <label for="timeOfDaySelect">Time of Day:</label>
+        <select id="timeOfDaySelect">
+          <option value="8am">8am (Sunrise)</option>
+          <option value="2pm" selected>2pm (Daylight)</option>
+          <option value="11pm">11pm (Night)</option>
+        </select>
+        <label for="difficultySelect">Difficulty:</label>
+        <select id="difficultySelect">
+          <option value="1" selected>Level 1 – Big Countries (40% correct chance)</option>
+          <option value="2">Level 2 – Medium Countries (20% correct chance)</option>
+          <option value="3">Level 3 – Small Countries (10% correct chance)</option>
+        </select>
+        <!-- Mute Button -->
+        <button id="muteButton">Mute Music</button>
+        <button id="saveSettingsButton">Save Settings</button>
+      </div>
+    </div>
+
+    <!-- Mobile Arrow Controls -->
+    <div id="mobileControls">
+      <button id="leftButton">←</button>
+      <button id="rightButton">→</button>
+    </div>
+
+    <!-- Achievement Notifications Container -->
+    <div id="achievementContainer"></div>
+  </div>
+  
+  <!-- Background Music Audio Element -->
+  <audio id="backgroundMusic" loop></audio>
+
+  <script>
+    /******************* Global Variables & Settings *******************/
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Background & difficulty settings (defaults)
+    let currentTimeSetting = "2pm"; // "8am", "2pm", or "11pm"
+    let currentDifficulty = "1";    // "1": Big, "2": Medium, "3": Small
+
+    // Music options based on time of day.
+    const musicOptions = {
+      "8am": [
+        "audio/morning_mood.mp3",
+        "audio/here_comes_the_sun.mp3",
+        "audio/weightless.mp3",
+        "audio/island_in_the_sun.mp3",
+        "audio/new_beginnings.mp3"
+      ],
+      "2pm": [
+        "audio/happy_instrumental.mp3",
+        "audio/adventure_awaits.mp3",
+        "audio/on_top_of_the_world.mp3",
+        "audio/breezy_afternoon.mp3",
+        "audio/golden_days.mp3"
+      ],
+      "11pm": [
+        "audio/clair_de_lune.mp3",
+        "audio/night_walk.mp3",
+        "audio/starry_skies.mp3",
+        "audio/moonlight_sonata.mp3",
+        "audio/beyond_the_horizon.mp3"
+      ]
+    };
+
+    const backgroundMusic = document.getElementById("backgroundMusic");
+
+    // Extended Country Lists
+    const bigCountries = [
+      { name: "United States", img: "flags/usa.png" },
+      { name: "China", img: "flags/china.png" },
+      { name: "Japan", img: "flags/japan.png" },
+      { name: "Italy", img: "flags/italy.png" },
+      { name: "Spain", img: "flags/spain.png" },
+      { name: "U.K", img: "flags/uk.png" },
+      { name: "India", img: "flags/india.png" },
+      { name: "Pakistan", img: "flags/pakistan.png" },
+      { name: "Mexico", img: "flags/mexico.png" },
+      { name: "Brazil", img: "flags/brazil.png" },
+      { name: "Australia", img: "flags/australia.png" },
+      { name: "Canada", img: "flags/canada.png" },
+      { name: "Russia", img: "flags/russia.png" },
+      { name: "Germany", img: "flags/germany.png" },
+      { name: "France", img: "flags/france.png" },
+      { name: "South Korea", img: "flags/south_korea.png" },
+      { name: "Turkey", img: "flags/turkey.png" },
+      { name: "Indonesia", img: "flags/indonesia.png" },
+      { name: "Saudi Arabia", img: "flags/saudi_arabia.png" },
+      { name: "Argentina", img: "flags/argentina.png" },
+      { name: "Nigeria", img: "flags/nigeria.png" },
+      { name: "Egypt", img: "flags/egypt.png" },
+      { name: "Iran", img: "flags/iran.png" },
+      { name: "Thailand", img: "flags/thailand.png" },
+      { name: "Vietnam", img: "flags/vietnam.png" },
+      { name: "United Arab Emirates", img: "flags/uae.png" },
+      { name: "Colombia", img: "flags/colombia.png" },
+      { name: "Poland", img: "flags/poland.png" },
+      { name: "Netherlands", img: "flags/netherlands.png" },
+      { name: "Belgium", img: "flags/belgium.png" }
+    ];
+    const mediumCountries = [
+      { name: "Algeria", img: "flags/algeria.png" },
+      { name: "Serbia", img: "flags/serbia.png" },
+      { name: "Ukraine", img: "flags/ukraine.png" },
+      { name: "Cuba", img: "flags/cuba.png" },
+      { name: "Portugal", img: "flags/portugal.png" },
+      { name: "South Africa", img: "flags/south_africa.png" },
+      { name: "Paraguay", img: "flags/paraguay.png" },
+      { name: "Morocco", img: "flags/morocco.png" },
+      { name: "Bangladesh", img: "flags/bangladesh.png" },
+      { name: "Peru", img: "flags/peru.png" },
+      { name: "Venezuela", img: "flags/venezuela.png" },
+      { name: "Iraq", img: "flags/iraq.png" },
+      { name: "Sudan", img: "flags/sudan.png" },
+      { name: "Romania", img: "flags/romania.png" },
+      { name: "Chile", img: "flags/chile.png" },
+      { name: "Greece", img: "flags/greece.png" },
+      { name: "Hungary", img: "flags/hungary.png" },
+      { name: "New Zealand", img: "flags/new_zealand.png" },
+      { name: "Finland", img: "flags/finland.png" },
+      { name: "Norway", img: "flags/norway.png" },
+      { name: "Denmark", img: "flags/denmark.png" },
+      { name: "Slovakia", img: "flags/slovakia.png" },
+      { name: "Bulgaria", img: "flags/bulgaria.png" },
+      { name: "Costa Rica", img: "flags/costa_rica.png" },
+      { name: "Lebanon", img: "flags/lebanon.png" },
+      { name: "Jordan", img: "flags/jordan.png" },
+      { name: "Oman", img: "flags/oman.png" },
+      { name: "Kuwait", img: "flags/kuwait.png" },
+      { name: "Uruguay", img: "flags/uruguay.png" },
+      { name: "Panama", img: "flags/panama.png" },
+      { name: "El Salvador", img: "flags/el_salvador.png" }
+    ];
+    const smallCountries = [
+      { name: "Armenia", img: "flags/armenia.png" },
+      { name: "Tajikistan", img: "flags/tajikistan.png" },
+      { name: "Gabon", img: "flags/gabon.png" },
+      { name: "Croatia", img: "flags/croatia.png" },
+      { name: "Dominican Republic", img: "flags/dominican_republic.png" },
+      { name: "Haiti", img: "flags/haiti.png" },
+      { name: "Jamaica", img: "flags/jamaica.png" },
+      { name: "Papua New Guinea", img: "flags/papua_new_guinea.png" },
+      { name: "Philippines", img: "flags/philippines.png" },
+      { name: "Yemen", img: "flags/yemen.png" },
+      { name: "Albania", img: "flags/albania.png" },
+      { name: "Bosnia and Herzegovina", img: "flags/bosnia.png" },
+      { name: "Slovenia", img: "flags/slovenia.png" },
+      { name: "Montenegro", img: "flags/montenegro.png" },
+      { name: "Kosovo", img: "flags/kosovo.png" },
+      { name: "Cyprus", img: "flags/cyprus.png" },
+      { name: "Luxembourg", img: "flags/luxembourg.png" },
+      { name: "Malta", img: "flags/malta.png" },
+      { name: "Iceland", img: "flags/iceland.png" },
+      { name: "Andorra", img: "flags/andorra.png" },
+      { name: "Monaco", img: "flags/monaco.png" },
+      { name: "San Marino", img: "flags/san_marino.png" },
+      { name: "Liechtenstein", img: "flags/liechtenstein.png" },
+      { name: "Bahrain", img: "flags/bahrain.png" },
+      { name: "Qatar", img: "flags/qatar.png" },
+      { name: "Brunei", img: "flags/brunei.png" },
+      { name: "Fiji", img: "flags/fiji.png" },
+      { name: "Samoa", img: "flags/samoa.png" },
+      { name: "Belize", img: "flags/belize.png" },
+      { name: "Eswatini", img: "flags/eswatini.png" },
+      { name: "Guatemala", img: "flags/guatemala.png" }
+    ];
+    
+    let currentCountries = bigCountries; // Default to Big.
+    let correctChance = 0.4;
+
+    // Scoring variables.
+    let overallScore = 0;
+    let roundDistance = 0;
+    let lastTime = null;
+    
+    // Additional achievement counters.
+    let totalDistanceTraveled = 0;  // Cumulative across rounds.
+    let correctCatchCount = 0;
+    
+    // Speed settings (50 pixels per meter).
+    const pixelsPerMeter = 50;
+    const balloonSpeedPx = 10 * pixelsPerMeter; // 10 m/s → 500 px/s.
+    const flagFallSpeed = 200; // pixels per second.
+    
+    // For 11pm background stars.
+    let starPositions = [];
+    
+    /******************* Achievement System *******************/
+    // Define achievements.
+    let achievements = {
+      float1000: { title: "Float 1000 meters", unlocked: false },
+      guess10: { title: "Guess 10 correct countries", unlocked: false },
+      changeTime: { title: "Change the time of day", unlocked: false },
+      level3Correct: { title: "Get a correct flag on Level 3", unlocked: false }
+    };
+    // Load stored achievements.
+    const storedAchievements = JSON.parse(localStorage.getItem("geographyDropAchievements") || "{}");
+    for (let key in storedAchievements) {
+      if (achievements[key] !== undefined) {
+        achievements[key].unlocked = storedAchievements[key];
+      }
+    }
+    
+    function saveAchievements() {
+      localStorage.setItem("geographyDropAchievements", JSON.stringify(achievements));
+    }
+    
+    function unlockAchievement(key) {
+      if (!achievements[key].unlocked) {
+        achievements[key].unlocked = true;
+        saveAchievements();
+        showAchievementBubble(achievements[key].title + " Complete!");
+      }
+    }
+    
+    function showAchievementBubble(message) {
+      const container = document.getElementById("achievementContainer");
+      const bubble = document.createElement("div");
+      bubble.className = "achievementBubble";
+      bubble.textContent = message;
+      container.appendChild(bubble);
+      setTimeout(() => {
+        container.removeChild(bubble);
+      }, 3000);
+    }
+    
+    /******************* Game Object Definitions *******************/
+    const balloon = {
+      width: 100,
+      height: 120,
+      x: canvas.width / 2 - 50,
+      y: canvas.height - 140,
+      currentCountry: null
+    };
+    
+    let fallingFlags = [];
+    let flagSpawnTimer = 0;
+    
+    function chooseNewCountry() {
+      if (currentDifficulty === "1") {
+        currentCountries = bigCountries;
+        correctChance = 0.4;
+      } else if (currentDifficulty === "2") {
+        currentCountries = mediumCountries;
+        correctChance = 0.2;
+      } else {
+        currentCountries = smallCountries;
+        correctChance = 0.1;
+      }
+      const randIndex = Math.floor(Math.random() * currentCountries.length);
+      balloon.currentCountry = currentCountries[randIndex];
+    }
+    
+    function spawnFlag() {
+      const flagWidth = 80, flagHeight = 50;
+      let flagCountry;
+      if (Math.random() < correctChance) {
+        flagCountry = balloon.currentCountry;
+      } else {
+        let candidate;
+        do {
+          candidate = currentCountries[Math.floor(Math.random() * currentCountries.length)];
+        } while (candidate.name === balloon.currentCountry.name);
+        flagCountry = candidate;
+      }
+      const x = Math.random() * (canvas.width - flagWidth);
+      const y = -flagHeight;
+      fallingFlags.push({ x, y, width: flagWidth, height: flagHeight, country: flagCountry });
+    }
+    
+    /******************* Background Drawing *******************/
+    function getBackgroundGradient() {
+      let gradient;
+      if (currentTimeSetting === "8am") {
+        gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, "#FF9A8B");
+        gradient.addColorStop(1, "#FFD3A5");
+      } else if (currentTimeSetting === "2pm") {
+        gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, "#87ceeb");
+        gradient.addColorStop(1, "#e0ffff");
+      } else if (currentTimeSetting === "11pm") {
+        gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+        gradient.addColorStop(0, "#0F2027");
+        gradient.addColorStop(1, "#203A43");
+      }
+      return gradient;
+    }
+    function generateStars() {
+      starPositions = [];
+      const starCount = 100;
+      for (let i = 0; i < starCount; i++) {
+        starPositions.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: Math.random() * 2 + 1
+        });
+      }
+    }
+    
+    /******************* Input Handling (Slide Balloon) *******************/
+    let isDragging = false;
+    let dragOffsetX = 0;
+    canvas.addEventListener("mousedown", (e) => {
+      const { x, y } = getMousePos(e);
+      if (isInsideBalloon(x, y)) {
+        isDragging = true;
+        dragOffsetX = x - balloon.x;
+      }
+    });
+    canvas.addEventListener("mousemove", (e) => {
+      if (isDragging) {
+        const { x } = getMousePos(e);
+        balloon.x = x - dragOffsetX;
+        if (balloon.x < 0) balloon.x = 0;
+        if (balloon.x + balloon.width > canvas.width) balloon.x = canvas.width - balloon.width;
+      }
+    });
+    canvas.addEventListener("mouseup", () => { isDragging = false; });
+    canvas.addEventListener("mouseleave", () => { isDragging = false; });
+    canvas.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const { x, y } = getTouchPos(touch);
+      if (isInsideBalloon(x, y)) {
+        isDragging = true;
+        dragOffsetX = x - balloon.x;
+      }
+    });
+    canvas.addEventListener("touchmove", (e) => {
+      e.preventDefault();
+      if (isDragging) {
+        const touch = e.touches[0];
+        const { x } = getTouchPos(touch);
+        balloon.x = x - dragOffsetX;
+        if (balloon.x < 0) balloon.x = 0;
+        if (balloon.x + balloon.width > canvas.width) balloon.x = canvas.width - balloon.width;
+      }
+    });
+    canvas.addEventListener("touchend", () => { isDragging = false; });
+    function getMousePos(evt) {
+      const rect = canvas.getBoundingClientRect();
+      return { x: evt.clientX - rect.left, y: evt.clientY - rect.top };
+    }
+    function getTouchPos(touch) {
+      const rect = canvas.getBoundingClientRect();
+      return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+    }
+    function isInsideBalloon(x, y) {
+      return x >= balloon.x && x <= balloon.x + balloon.width &&
+             y >= balloon.y && y <= balloon.y + balloon.height;
+    }
+    
+    /******************* Mobile Arrow Buttons *******************/
+    if ("ontouchstart" in window) {
+      document.getElementById("mobileControls").style.display = "flex";
+    } else {
+      document.getElementById("mobileControls").style.display = "none";
+    }
+    let leftInterval, rightInterval;
+    const mobileButtonInterval = 20; // ms interval for continuous movement.
+    const continuousSpeed = 400; // 400 pixels per second.
+    const movementPerInterval = (continuousSpeed * mobileButtonInterval) / 1000;
+    
+    document.getElementById("leftButton").addEventListener("click", () => {
+      balloon.x = Math.max(balloon.x - 10, 0);
+    });
+    document.getElementById("rightButton").addEventListener("click", () => {
+      balloon.x = Math.min(balloon.x + 10, canvas.width - balloon.width);
+    });
+    document.getElementById("leftButton").addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      if (!leftInterval) {
+        leftInterval = setInterval(() => {
+          balloon.x = Math.max(balloon.x - movementPerInterval, 0);
+        }, mobileButtonInterval);
+      }
+    });
+    document.getElementById("leftButton").addEventListener("touchend", () => {
+      clearInterval(leftInterval);
+      leftInterval = null;
+    });
+    document.getElementById("leftButton").addEventListener("touchcancel", () => {
+      clearInterval(leftInterval);
+      leftInterval = null;
+    });
+    document.getElementById("rightButton").addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      if (!rightInterval) {
+        rightInterval = setInterval(() => {
+          balloon.x = Math.min(balloon.x + movementPerInterval, canvas.width - balloon.width);
+        }, mobileButtonInterval);
+      }
+    });
+    document.getElementById("rightButton").addEventListener("touchend", () => {
+      clearInterval(rightInterval);
+      rightInterval = null;
+    });
+    document.getElementById("rightButton").addEventListener("touchcancel", () => {
+      clearInterval(rightInterval);
+      rightInterval = null;
+    });
+    
+        /******************* Background Music Setup *******************/
+    function selectBackgroundTrack() {
+      const options = musicOptions[currentTimeSetting] || [];
+      if (options.length > 0) {
+        const randomIndex = Math.floor(Math.random() * options.length);
+        backgroundMusic.src = options[randomIndex];
+      }
+    }
+    function startMusic() {
+      selectBackgroundTrack();
+      backgroundMusic.play();
+    }
+    
+    const muteButton = document.getElementById("muteButton");
+    muteButton.addEventListener("click", () => {
+      if (backgroundMusic.muted) {
+        backgroundMusic.muted = false;
+        muteButton.textContent = "Mute Music";
+      } else {
+        backgroundMusic.muted = true;
+        muteButton.textContent = "Play Music";
+      }
+    });
+    
+    /******************* Game Loop & Update *******************/
+    function gameLoop(timestamp) {
+      if (!gameStarted || gamePaused) return;
+      if (!lastTime) lastTime = timestamp;
+      const dt = (timestamp - lastTime) / 1000;
+      lastTime = timestamp;
+      update(dt);
+      draw();
+      checkCollisions();
+      requestAnimationFrame(gameLoop);
+    }
+    function update(dt) {
+      // Balloon rises upward.
+      balloon.y -= balloonSpeedPx * dt;
+      roundDistance += (balloonSpeedPx * dt) / pixelsPerMeter;
+      flagSpawnTimer += dt;
+      if (flagSpawnTimer > (0.5 + Math.random() * 0.5)) {
+        spawnFlag();
+        flagSpawnTimer = 0;
+      }
+      fallingFlags.forEach(flag => {
+        flag.y += flagFallSpeed * dt;
+      });
+      fallingFlags = fallingFlags.filter(flag => flag.y <= canvas.height);
+    }
+    function checkCollisions() {
+      for (let i = 0; i < fallingFlags.length; i++) {
+        const flag = fallingFlags[i];
+        if (rectCollision(balloon, flag)) {
+          if (flag.country.name === balloon.currentCountry.name) {
+            // Correct catch!
+            overallScore += 100 + Math.floor(roundDistance);
+            correctCatchCount++;
+            totalDistanceTraveled += roundDistance;
+            // Check achievements.
+            if (totalDistanceTraveled >= 1000 && !achievements.float1000.unlocked) {
+              unlockAchievement("float1000");
+            }
+            if (correctCatchCount >= 10 && !achievements.guess10.unlocked) {
+              unlockAchievement("guess10");
+            }
+            if (currentDifficulty === "3" && !achievements.level3Correct.unlocked) {
+              unlockAchievement("level3Correct");
+            }
+            newRound();
+            return;
+          } else {
+            gameOver();
+            return;
+          }
+        }
+      }
+    }
+    function rectCollision(r1, r2) {
+      return r1.x < r2.x + r2.width &&
+             r1.x + r1.width > r2.x &&
+             r1.y < r2.y + r2.height &&
+             r1.y + r1.height > r2.y;
+    }
+    
+    /******************* Drawing Functions *******************/
+    function draw() {
+      const gradient = getBackgroundGradient();
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Draw stars if 11pm.
+      if (currentTimeSetting === "11pm") {
+        if (starPositions.length === 0) generateStars();
+        ctx.fillStyle = "white";
+        starPositions.forEach(star => {
+          ctx.beginPath();
+          ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+      // Draw the balloon.
+      ctx.fillStyle = "red";
+      ctx.beginPath();
+      ctx.ellipse(balloon.x + balloon.width/2, balloon.y + balloon.height/2,
+                  balloon.width/2, balloon.height/2,
+                  0, 0, Math.PI*2);
+      ctx.fill();
+      ctx.strokeStyle = "black";
+      ctx.stroke();
+      // Draw country name on the balloon.
+      ctx.fillStyle = "white";
+      ctx.font = "20px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(balloon.currentCountry.name, balloon.x + balloon.width/2,
+                   balloon.y + balloon.height/2 + 8);
+      // Draw falling flags.
+      fallingFlags.forEach(flag => {
+        ctx.strokeStyle = "black";
+        ctx.strokeRect(flag.x, flag.y, flag.width, flag.height);
+        let img = new Image();
+        img.src = flag.country.img;
+        ctx.drawImage(img, flag.x, flag.y, flag.width, flag.height);
+      });
+      // Draw scores.
+      ctx.fillStyle = "black";
+      ctx.font = "24px sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillText("Score: " + overallScore, 20, 30);
+      ctx.fillText("Distance: " + Math.floor(roundDistance) + " m", 20, 60);
+      let savedHigh = parseInt(localStorage.getItem("geographyDropHighScore"), 10) || 0;
+      ctx.fillText("High Score: " + savedHigh, 20, 90);
+    }
+    
+    /******************* Round Management & Game Over *******************/
+    function newRound() {
+      fallingFlags = [];
+      roundDistance = 0;
+      balloon.x = canvas.width/2 - balloon.width/2;
+      balloon.y = canvas.height - balloon.height - 20;
+      chooseNewCountry();
+    }
+    function gameOver() {
+      gamePaused = true;
+      gameStarted = false;
+      let savedHigh = parseInt(localStorage.getItem("geographyDropHighScore"), 10) || 0;
+      if (overallScore > savedHigh) {
+        localStorage.setItem("geographyDropHighScore", overallScore);
+      }
+      document.getElementById("finalScore").textContent = "Final Score: " + overallScore;
+      document.getElementById("gameOverOverlay").style.display = "flex";
+    }
+    
+    /******************* Start & Restart Handling *******************/
+    document.getElementById("startButton").addEventListener("click", () => {
+      overallScore = 0;
+      roundDistance = 0;
+      fallingFlags = [];
+      correctCatchCount = 0;
+      totalDistanceTraveled = 0;
+      chooseNewCountry();
+      document.getElementById("startOverlay").style.display = "none";
+      gameStarted = true;
+      gamePaused = false;
+      lastTime = null;
+      startMusic();
+      requestAnimationFrame(gameLoop);
+    });
+    document.getElementById("restartButton").addEventListener("click", () => {
+      document.getElementById("gameOverOverlay").style.display = "none";
+      overallScore = 0;
+      roundDistance = 0;
+      fallingFlags = [];
+      correctCatchCount = 0;
+      totalDistanceTraveled = 0;
+      chooseNewCountry();
+      balloon.x = canvas.width/2 - balloon.width/2;
+      balloon.y = canvas.height - balloon.height - 20;
+      gameStarted = true;
+      gamePaused = false;
+      lastTime = null;
+      startMusic();
+      requestAnimationFrame(gameLoop);
+    });
+    
+    /******************* Settings Modal Handling *******************/
+    const settingsButton = document.getElementById("settingsButton");
+    const settingsModal = document.getElementById("settingsModal");
+    const saveSettingsButton = document.getElementById("saveSettingsButton");
+    const timeOfDaySelect = document.getElementById("timeOfDaySelect");
+    const difficultySelect = document.getElementById("difficultySelect");
+    
+    settingsButton.addEventListener("click", () => {
+      settingsModal.style.display = "flex";
+      timeOfDaySelect.value = currentTimeSetting;
+      difficultySelect.value = currentDifficulty;
+    });
+    saveSettingsButton.addEventListener("click", () => {
+      // If the time setting is being changed, unlock the "Change the time of day" achievement.
+      if (timeOfDaySelect.value !== currentTimeSetting && !achievements.changeTime.unlocked) {
+        unlockAchievement("changeTime");
+      }
+      currentTimeSetting = timeOfDaySelect.value;
+      currentDifficulty = difficultySelect.value;
+      if (currentTimeSetting === "11pm") {
+        generateStars();
+      } else {
+        starPositions = [];
+      }
+      settingsModal.style.display = "none";
+      newRound();
+      selectBackgroundTrack();
+      backgroundMusic.play();
+    });
+  </script>
+</body>
+</html>
