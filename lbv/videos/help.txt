@@ -1,0 +1,14 @@
+(function extractPlaylistVideos() {
+    const videos = [];
+    document.querySelectorAll('ytd-playlist-video-renderer').forEach(video => {
+        const title = video.querySelector('#video-title').textContent.trim();
+        const url = video.querySelector('#video-title').href;
+        const id = new URL(url).searchParams.get('v');
+
+        if (id) {
+            videos.push({ id, title });
+        }
+    });
+
+    console.log(JSON.stringify(videos, null, 2));
+})();
