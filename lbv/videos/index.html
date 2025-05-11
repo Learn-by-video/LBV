@@ -129,6 +129,7 @@
 
     <script>
         let allVideos = []; // Store all videos for search functionality
+        let isSearching = false; // Track if a search is active
 
         async function loadVideos() {
             try {
@@ -136,41 +137,48 @@
                 if (!response.ok) throw new Error("Failed to fetch videos.json");
 
                 const data = await response.json();
-                const container = document.getElementById("video-container");
-                container.innerHTML = "";
-
-                allVideos = []; // Clear allVideos array before populating it
-
-                for (const [category, subcategories] of Object.entries(data)) {
-                    const categoryDiv = document.createElement("div");
-                    categoryDiv.className = "category";
-                    categoryDiv.innerText = category;
-                    categoryDiv.onclick = () => toggleCategory(category);
-
-                    container.appendChild(categoryDiv);
-
-                    for (const [subcatName, videos] of Object.entries(subcategories)) {
-                        const subcatDiv = document.createElement("div");
-                        subcatDiv.className = "subcategory";
-                        subcatDiv.id = `subcat-${category}-${subcatName}`;
-                        subcatDiv.innerHTML = `<h3>${subcatName}</h3><div class="video-grid"></div>`;
-
-                        videos.forEach(video => {
-                            allVideos.push({ ...video, category, subcategory: subcatName }); // Add to the global array for search
-                            const videoDiv = createVideoElement(video);
-                            subcatDiv.querySelector(".video-grid").appendChild(videoDiv);
-                        });
-
-                        container.appendChild(subcatDiv);
-                    }
-                }
+                renderVideoCategories(data);
             } catch (error) {
                 console.error("Error fetching videos.json:", error);
             }
         }
 
+        function renderVideoCategories(data) {
+            const container = document.getElementById("video-container");
+            container.innerHTML = ""; // Clear the container
+            allVideos = []; // Reset the global video array
+
+            for (const [category, subcategories] of Object.entries(data)) {
+                // Create category button
+                const categoryDiv = document.createElement("div");
+                categoryDiv.className = "category";
+                categoryDiv.innerText = category;
+                categoryDiv.onclick = () => toggleCategory(category);
+
+                container.appendChild(categoryDiv);
+
+                // Create subcategories
+                for (const [subcatName, videos] of Object.entries(subcategories)) {
+                    const subcatDiv = document.createElement("div");
+                    subcatDiv.className = "subcategory";
+                    subcatDiv.id = `subcat-${category}-${subcatName}`;
+                    subcatDiv.innerHTML = `<h3>${subcatName}</h3><div class="video-grid"></div>`;
+
+                    // Add videos to the subcategory
+                    videos.forEach(video => {
+                        allVideos.push({ ...video, category, subcategory: subcatName }); // Add to global array
+                        const videoDiv = createVideoElement(video);
+                        subcatDiv.querySelector(".video-grid").appendChild(videoDiv);
+                    });
+
+                    container.appendChild(subcatDiv);
+                }
+            }
+        }
+
         function toggleCategory(category) {
-            document.querySelectorAll(`[id^="subcat-${category}"]`).forEach(subcat => {
+            const subcategories = document.querySelectorAll(`[id^="subcat-${category}"]`);
+            subcategories.forEach(subcat => {
                 subcat.classList.toggle("active");
             });
         }
@@ -188,6 +196,8 @@
 
         function searchVideos() {
             const query = document.getElementById("search-bar").value.toLowerCase();
+            isSearching = query.trim() !== ""; // Track search state
+
             const filteredVideos = allVideos.filter(video =>
                 video.title.toLowerCase().includes(query) ||
                 video.category.toLowerCase().includes(query) ||
@@ -202,7 +212,7 @@
                 return;
             }
 
-            // Group by category and subcategory
+            // Group filtered videos by category and subcategory
             const groupedVideos = {};
             filteredVideos.forEach(video => {
                 if (!groupedVideos[video.category]) groupedVideos[video.category] = {};
@@ -210,18 +220,20 @@
                 groupedVideos[video.category][video.subcategory].push(video);
             });
 
-            // Render grouped results
+            // Render filtered videos
             for (const [category, subcategories] of Object.entries(groupedVideos)) {
+                // Create category button
                 const categoryDiv = document.createElement("div");
                 categoryDiv.className = "category";
                 categoryDiv.innerText = category;
-                categoryDiv.onclick = () => toggleCategory(category); // Reattach toggle functionality
+                categoryDiv.onclick = () => toggleCategory(category);
 
                 container.appendChild(categoryDiv);
 
+                // Create subcategories
                 for (const [subcatName, videos] of Object.entries(subcategories)) {
                     const subcatDiv = document.createElement("div");
-                    subcatDiv.className = "subcategory active"; // Show active during search
+                    subcatDiv.className = "subcategory active"; // Keep subcategories open during search
                     subcatDiv.innerHTML = `<h3>${subcatName}</h3><div class="video-grid"></div>`;
 
                     videos.forEach(video => {
@@ -246,7 +258,16 @@
             document.getElementById("overlay").style.display = "none";
         }
 
-        document.addEventListener("DOMContentLoaded", loadVideos);
+        document.addEventListener("DOMContentLoaded", () => {
+            loadVideos();
+
+            // Re-enable toggling when search is cleared
+            document.getElementById("search-bar").addEventListener("input", () => {
+                if (!isSearching && document.getElementById("search-bar").value.trim() === "") {
+                    loadVideos();
+                }
+            });
+        });
     </script>
 
     <script>
