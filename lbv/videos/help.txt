@@ -1,4 +1,7 @@
-(function extractPlaylistVideos() {
+(function extractAndStructurePlaylist() {
+    const category = "Math"; // Change the category name here
+    const subcategory = "Multiplication"; // Change the subcategory name here
+
     const videos = [];
     document.querySelectorAll('ytd-playlist-video-renderer').forEach(video => {
         const title = video.querySelector('#video-title').textContent.trim();
@@ -10,5 +13,11 @@
         }
     });
 
-    console.log(JSON.stringify(videos, null, 2));
+    const structuredData = {
+        [category]: {
+            [subcategory]: videos
+        }
+    };
+
+    console.log(JSON.stringify(structuredData, null, 2));
 })();
