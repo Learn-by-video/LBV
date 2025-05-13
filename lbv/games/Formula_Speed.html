@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <title>Formula Speed</title>
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
+  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <style>
     /* General styles */
     body {
@@ -129,6 +130,46 @@
     .new-content {
       animation: pulseEffect 1s infinite alternate;
     }
+    /* 3D Game View */
+    #gameCanvas {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    
+    /* Power-up Display */
+    .power-up {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: rgba(0, 0, 0, 0.5);
+      border: 2px solid #fff;
+      border-radius: 50%;
+    }
+    
+    /* Position Display */
+    .position {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    
+    /* Speed Meter */
+    .speed-meter {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      font-size: 20px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      border-radius: 5px;
+    }
   </style>
 </head>
 <body>
@@ -213,13 +254,15 @@
 
   <!-- Game Screen -->
   <div id="gameScreen" class="screen" style="display: none;">
-    <div id="miniMap">Mini Map here</div>
-    <div id="raceView">Race view (3rd person behind the car)</div>
+    <canvas id="gameCanvas"></canvas>
     <div id="uiOverlay">
-      <div id="timeTrialTimer">00:00:00</div>
-      <div id="lapCounter">Lap: 1/2</div>
-      <div id="boostMeter">Boost: 100%</div>
-      <div id="mathProblem">Solve: 5 + 3 = ?</div>
+      <div class="position">Position: 1/8</div>
+      <div class="speed-meter">Speed: 0 km/h</div>
+      <div class="power-up"></div>
+      <div id="lapCounter">Lap: 1/3</div>
+      <div id="mathProblem" style="background: rgba(0,0,0,0.7); padding: 10px;">
+        Solve: 5 + 3 = ?
+      </div>
     </div>
   </div>
 
@@ -407,6 +450,7 @@
       // Start Race Function: Initializes variables and UI
       function startRace() {
         showScreen("gameScreen");
+        const game = new RaceGame();
         currentLap = 1;
         totalLaps = parseInt(document.getElementById("lapCount").value) || 2;
         document.getElementById("lapCounter").innerText = `Lap: ${currentLap}/${totalLaps}`;
@@ -516,6 +560,97 @@
     
       // -----------------------------------------------------
     });
+
+    class RaceGame {
+      constructor() {
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this.renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas') });
+        this.cars = [];
+        this.track = null;
+        this.powerUps = [];
+        this.speed = 0;
+        this.position = 1;
+        
+        this.init();
+      }
+      
+      init() {
+        // Setup renderer
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.shadowMap.enabled = true;
+        
+        // Add lights
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        this.scene.add(ambientLight);
+        
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(100, 100, 50);
+        this.scene.add(dirLight);
+        
+        // Load track
+        this.loadTrack();
+        
+        // Load cars
+        this.loadCars();
+        
+        // Start animation loop
+        this.animate();
+      }
+      
+      loadTrack() {
+        // Create basic track (replace with actual 3D model)
+        const trackGeometry = new THREE.PlaneGeometry(1000, 1000);
+        const trackMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
+        this.track = new THREE.Mesh(trackGeometry, trackMaterial);
+        this.track.rotation.x = -Math.PI / 2;
+        this.track.receiveShadow = true;
+        this.scene.add(this.track);
+      }
+      
+      loadCars() {
+        // Create basic car (replace with actual 3D model)
+        const carGeometry = new THREE.BoxGeometry(2, 1, 4);
+        const carMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
+        const playerCar = new THREE.Mesh(carGeometry, carMaterial);
+        playerCar.castShadow = true;
+        this.scene.add(playerCar);
+        this.cars.push(playerCar);
+      }
+      
+      animate() {
+        requestAnimationFrame(() => this.animate());
+        
+        // Update car positions
+        this.updateCars();
+        
+        // Update camera
+        this.updateCamera();
+        
+        // Render scene
+        this.renderer.render(this.scene, this.camera);
+      }
+      
+      updateCars() {
+        // Add car movement logic here
+      }
+      
+      updateCamera() {
+        // Follow player car
+        if (this.cars.length > 0) {
+          const playerCar = this.cars[0];
+          this.camera.position.lerp(
+            new THREE.Vector3(
+              playerCar.position.x,
+              playerCar.position.y + 5,
+              playerCar.position.z - 10
+            ),
+            0.1
+          );
+          this.camera.lookAt(playerCar.position);
+        }
+      }
+    }
   </script>
 </body>
 </html>
