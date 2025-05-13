@@ -143,7 +143,8 @@
     .power-up {
       position: absolute;
       bottom: 20px;
-      right: 20px;
+      left: 50%;
+      transform: translateX(-50%);
       width: 60px;
       height: 60px;
       background: rgba(0, 0, 0, 0.5);
@@ -154,7 +155,7 @@
     /* Position Display */
     .position {
       position: absolute;
-      top: 20px;
+      top: 80px;
       right: 20px;
       font-size: 24px;
       font-weight: bold;
@@ -163,12 +164,30 @@
     /* Speed Meter */
     .speed-meter {
       position: absolute;
-      bottom: 20px;
+      top: 20px;
+      right: 20px;
+      font-size: 24px;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 15px;
+      border-radius: 10px;
+      min-width: 150px;
+    }
+    
+    #lapCounter {
+      position: absolute;
+      top: 20px;
       left: 20px;
-      font-size: 20px;
-      background: rgba(0, 0, 0, 0.5);
-      padding: 10px;
-      border-radius: 5px;
+    }
+    
+    #mathProblem {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.8);
+      padding: 20px;
+      border-radius: 10px;
+      display: none; /* Show only when math challenge activates */
     }
   </style>
 </head>
@@ -235,7 +254,7 @@
       </div>
       <!-- Track 2: Rainy Raceway -->
       <div class="track" id="track2">
-        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><rect width='100' height='100' fill='lightblue'/></svg>" alt="Rainy Raceway">
+        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='lightblue'/></svg>" alt="Rainy Raceway">
         <p>Rainy Raceway</p>
         <p>Wet and challenging!</p>
       </div>
@@ -360,6 +379,10 @@
     <p id="unlockMessage"></p>
     <button onclick="dismissUnlockPopup()">OK</button>
   </div>
+
+  <!-- Add model loading scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.132.2/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js"></script>
 
   <script>
     document.addEventListener("DOMContentLoaded", function() {
@@ -567,10 +590,8 @@
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas') });
         this.cars = [];
+        this.aiCars = [];
         this.track = null;
-        this.powerUps = [];
-        this.speed = 0;
-        this.position = 1;
         
         this.init();
       }
@@ -588,18 +609,24 @@
         dirLight.position.set(100, 100, 50);
         this.scene.add(dirLight);
         
-        // Load track
-        this.loadTrack();
+        // Create track
+        this.createTrack();
         
-        // Load cars
-        this.loadCars();
+        // Create player car
+        this.createPlayerCar();
+        
+        // Create AI cars
+        this.createAICars();
         
         // Start animation loop
         this.animate();
+        
+        // Add keyboard controls
+        this.setupControls();
       }
       
-      loadTrack() {
-        // Create basic track (replace with actual 3D model)
+      createTrack() {
+        // Simple track - just a plane for now
         const trackGeometry = new THREE.PlaneGeometry(1000, 1000);
         const trackMaterial = new THREE.MeshStandardMaterial({ color: 0x333333 });
         this.track = new THREE.Mesh(trackGeometry, trackMaterial);
@@ -608,47 +635,105 @@
         this.scene.add(this.track);
       }
       
-      loadCars() {
-        // Create basic car (replace with actual 3D model)
-        const carGeometry = new THREE.BoxGeometry(2, 1, 4);
+      createPlayerCar() {
+        // Create rectangular car
+        const carGeometry = new THREE.BoxGeometry(2, 1, 4); // width, height, length
         const carMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 });
         const playerCar = new THREE.Mesh(carGeometry, carMaterial);
+        playerCar.position.set(0, 0.5, 0); // Lift car slightly above track
         playerCar.castShadow = true;
         this.scene.add(playerCar);
-        this.cars.push(playerCar);
+        this.playerCar = playerCar;
+        
+        // Add car properties
+        this.playerCar.speed = 0;
+        this.playerCar.acceleration = 0;
+        this.playerCar.maxSpeed = 1;
+        this.playerCar.steering = 0;
+      }
+      
+      createAICars() {
+        // Create 3 AI cars
+        const colors = [0x00ff00, 0x0000ff, 0xffff00];
+        const startPositions = [
+          [-5, 0.5, -10],
+          [5, 0.5, -10],
+          [0, 0.5, -15]
+        ];
+        
+        for (let i = 0; i < 3; i++) {
+          const aiGeometry = new THREE.BoxGeometry(2, 1, 4);
+          const aiMaterial = new THREE.MeshStandardMaterial({ color: colors[i] });
+          const aiCar = new THREE.Mesh(aiGeometry, aiMaterial);
+          aiCar.position.set(...startPositions[i]);
+          aiCar.castShadow = true;
+          this.scene.add(aiCar);
+          this.aiCars.push(aiCar);
+        }
+      }
+      
+      setupControls() {
+        document.addEventListener('keydown', (e) => {
+          switch(e.key) {
+            case 'ArrowUp':
+              this.playerCar.acceleration = 0.01;
+              break;
+            case 'ArrowDown':
+              this.playerCar.acceleration = -0.01;
+              break;
+            case 'ArrowLeft':
+              this.playerCar.steering = 0.03;
+              break;
+            case 'ArrowRight':
+              this.playerCar.steering = -0.03;
+              break;
+          }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+          switch(e.key) {
+            case 'ArrowUp':
+            case 'ArrowDown':
+              this.playerCar.acceleration = 0;
+              break;
+            case 'ArrowLeft':
+            case 'ArrowRight':
+              this.playerCar.steering = 0;
+              break;
+          }
+        });
+      }
+      
+      updatePlayer() {
+        // Update speed
+        this.playerCar.speed += this.playerCar.acceleration;
+        this.playerCar.speed *= 0.99; // friction
+        this.playerCar.speed = Math.max(-this.playerCar.maxSpeed, Math.min(this.playerCar.speed, this.playerCar.maxSpeed));
+        
+        // Update rotation and position
+        this.playerCar.rotation.y += this.playerCar.steering * (this.playerCar.speed / this.playerCar.maxSpeed);
+        this.playerCar.position.x += Math.sin(this.playerCar.rotation.y) * this.playerCar.speed;
+        this.playerCar.position.z += Math.cos(this.playerCar.rotation.y) * this.playerCar.speed;
+        
+        // Update speed display
+        document.querySelector('.speed-meter').textContent = 
+          `Speed: ${Math.abs(Math.round(this.playerCar.speed * 100))} km/h`;
       }
       
       animate() {
         requestAnimationFrame(() => this.animate());
         
-        // Update car positions
-        this.updateCars();
+        // Update player
+        this.updatePlayer();
         
         // Update camera
-        this.updateCamera();
+        this.camera.position.x = this.playerCar.position.x;
+        this.camera.position.y = this.playerCar.position.y + 5;
+        this.camera.position.z = this.playerCar.position.z - 10;
+        this.camera.lookAt(this.playerCar.position);
         
         // Render scene
         this.renderer.render(this.scene, this.camera);
-      }
-      
-      updateCars() {
-        // Add car movement logic here
-      }
-      
-      updateCamera() {
-        // Follow player car
-        if (this.cars.length > 0) {
-          const playerCar = this.cars[0];
-          this.camera.position.lerp(
-            new THREE.Vector3(
-              playerCar.position.x,
-              playerCar.position.y + 5,
-              playerCar.position.z - 10
-            ),
-            0.1
-          );
-          this.camera.lookAt(playerCar.position);
-        }
       }
     }
   </script>
