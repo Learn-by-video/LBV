@@ -24,10 +24,28 @@
         <p>Unscramble the word: <strong id="scrambled"></strong></p>
         <input type="text" id="word">
         <button onclick="checkWord()">Submit</button>
+        <p id="hint"></p>
+        <button onclick="getHint()">Hint</button>
+        <script>
+            function getHint() {
+                let hint = correctWord.substring(0, 1);
+                document.getElementById("hint").innerText = "Hint: Starts with " + hint;
+            }
+        </script>
     </div>
     <script>
         let scrambled = correctWord.split("").sort(() => Math.random() - 0.5).join("");
         document.getElementById("scrambled").innerText = scrambled;
+        // Add a timer to limit the time to solve the puzzle
+        let timeLimit = 60; // in seconds
+        let timer = setInterval(() => {
+            timeLimit--;
+            document.title = `Word Builder - ${timeLimit} seconds left`;
+            if (timeLimit === 0) {
+                clearInterval(timer);
+                alert("Time's up! The correct answer was " + correctWord);
+            }
+        }, 1000);
     </script>
 </body>
 </html>

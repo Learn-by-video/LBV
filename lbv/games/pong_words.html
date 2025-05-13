@@ -76,8 +76,7 @@
     function resizeCanvas() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      // Adjust positions that depend on canvas dimensions.
-      aiX = canvas.width - paddleWidth - 20;
+      aiX = canvas.width - paddleWidth - 20; // Adjust AI paddle position
     }
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("load", resizeCanvas);
@@ -86,169 +85,116 @@
     const paddleWidth = 10;
     const paddleHeight = 100;
     const ballRadius = 10;
-    
-    // Player paddle position.
+
     let playerX = 20;
-    // Initially setting player's vertical position in the middle.
     let playerY = (canvas.height / 2) - (paddleHeight / 2);
-    
-    // AI paddle.
+    let playerSpeed = 0;
+    const playerFriction = 0.95;
+
     let aiX = canvas.width - paddleWidth - 20;
     let aiY = (canvas.height / 2) - (paddleHeight / 2);
-    
-    // Ball starting position and speed.
+
     let ballX = canvas.width / 2;
     let ballY = canvas.height / 2;
     let ballSpeedX = 6;
     let ballSpeedY = 3;
-    
+
     let playerScore = 0;
     let aiScore = 0;
-    
-    // Game Loop.
+    let gamePaused = false;
+
+    function update() {
+      if (!gamePaused) {
+        // Update ball position.
+        ballX += ballSpeedX;
+        ballY += ballSpeedY;
+
+        // Bounce off top and bottom walls.
+        if (ballY - ballRadius < 0 || ballY + ballRadius > canvas.height) {
+          ballSpeedY = -ballSpeedY;
+        }
+
+        // Check collision with player's paddle.
+        if (ballX - ballRadius < playerX + paddleWidth &&
+            ballY > playerY && ballY < playerY + paddleHeight) {
+          ballSpeedX = -ballSpeedX;
+        }
+
+        // Check collision with AI paddle.
+        if (ballX + ballRadius > aiX &&
+            ballY > aiY && ballY < aiY + paddleHeight) {
+          ballSpeedX = -ballSpeedX;
+        }
+
+        // Simple AI movement.
+        let aiCenter = aiY + paddleHeight / 2;
+        let diff = ballY - aiCenter;
+        aiY += diff * 0.1;
+
+        // Update player position.
+        playerY += playerSpeed;
+        playerSpeed *= playerFriction;
+        if (playerY < 0) playerY = 0;
+        if (playerY + paddleHeight > canvas.height) playerY = canvas.height - paddleHeight;
+
+        // Check if ball goes out of bounds.
+        if (ballX < 0) {
+          aiScore++;
+          resetBall();
+        } else if (ballX > canvas.width) {
+          playerScore++;
+          resetBall();
+        }
+      }
+    }
+
+    function resetBall() {
+      ballX = canvas.width / 2;
+      ballY = canvas.height / 2;
+      ballSpeedX = -ballSpeedX;
+    }
+
+    function draw() {
+      // Clear canvas.
+      ctx.fillStyle = "black";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw player paddle.
+      ctx.fillStyle = "white";
+      ctx.fillRect(playerX, playerY, paddleWidth, paddleHeight);
+
+      // Draw AI paddle.
+      ctx.fillRect(aiX, aiY, paddleWidth, paddleHeight);
+
+      // Draw ball.
+      ctx.beginPath();
+      ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Draw score.
+      ctx.font = "24px Arial";
+      ctx.fillStyle = "white";
+      ctx.textAlign = "center";
+      ctx.fillText(`Player: ${playerScore} - AI: ${aiScore}`, canvas.width / 2, 10);
+    }
+
     function gameLoop() {
       update();
       draw();
       requestAnimationFrame(gameLoop);
     }
-    
-    function update() {
-      // Update ball position.
-      ballX += ballSpeedX;
-      ballY += ballSpeedY;
-      
-      // Bounce off top and bottom.
-      if (ballY - ballRadius < 0 || ballY + ballRadius > canvas.height) {
-        ballSpeedY = -ballSpeedY;
-      }
-      
-      // Check collision with player's paddle.
-      if (ballX - ballRadius < playerX + paddleWidth &&
-          ballY > playerY && ballY < playerY + paddleHeight) {
-        ballSpeedX = -ballSpeedX;
-      }
-      
-      // Check collision with AI paddle.
-      if (ballX + ballRadius > aiX &&
-          ballY > aiY && ballY < aiY + paddleHeight) {
-        ballSpeedX = -ballSpeedX;
-      }
-      
-      // Simple AI: Move AI paddle toward the ball.
-      let aiCenter = aiY + paddleHeight / 2;
-      let diff = ballY - aiCenter;
-      aiY += diff * 0.1;  // Tune this factor to adjust AI reaction
 
-      // Calculate scoring.
-      if (ballX < 0) {
-        aiScore++;
-        resetBall();
-      } else if (ballX > canvas.width) {
-        playerScore++;
-        resetBall();
-      }
-      
-      // Update score display.
-      scoreDisplay.innerText = `Player: ${playerScore}   AI: ${aiScore}`;
-    }
-    
-    function resetBall() {
-      ballX = canvas.width / 2;
-      ballY = canvas.height / 2;
-      ballSpeedX = -ballSpeedX; // Send ball to the scoring side.
-    }
-    
-    function draw() {
-      // Clear canvas.
-      ctx.fillStyle = "black";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // Draw player paddle.
-      ctx.fillStyle = "white";
-      ctx.fillRect(playerX, playerY, paddleWidth, paddleHeight);
-      
-      // Draw AI paddle.
-      ctx.fillRect(aiX, aiY, paddleWidth, paddleHeight);
-      
-      // Draw ball.
-      ctx.beginPath();
-      ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    
-    // Keyboard controls for player's paddle. Uses up/down arrow keys.
     window.addEventListener("keydown", (e) => {
-      const step = 20;
-      if (e.key === "ArrowUp") {
-        playerY -= step;
-        if (playerY < 0) playerY = 0;
-      } else if (e.key === "ArrowDown") {
-        playerY += step;
-        if (playerY + paddleHeight > canvas.height) playerY = canvas.height - paddleHeight;
-      }
+      if (e.key === "ArrowUp") playerSpeed = -5;
+      if (e.key === "ArrowDown") playerSpeed = 5;
     });
-    
-    // Mobile Controls for Touch Devices.
-    // Show mobile controls only if on a touch device.
-    if ("ontouchstart" in window) {
-      document.getElementById("mobileControls").style.display = "flex";
-    } else {
-      document.getElementById("mobileControls").style.display = "none";
-    }
-    
-    // Variables for continuous movement on long press.
-    let upInterval, downInterval;
-    const mobileButtonInterval = 20; // ms interval for continuous movement.
-    const continuousSpeed = 400; // 400 pixels per second.
-    // How many pixels to move per interval.
-    const movementPerInterval = (continuousSpeed * mobileButtonInterval) / 1000;
-    
-    // Single tap event for touch buttons (moves paddle by 10 pixels).
-    document.getElementById("upButton").addEventListener("click", () => {
-      playerY = Math.max(playerY - 10, 0);
+
+    window.addEventListener("keyup", () => {
+      playerSpeed = 0;
     });
-    document.getElementById("downButton").addEventListener("click", () => {
-      playerY = Math.min(playerY + 10, canvas.height - paddleHeight);
-    });
-    
-    // Continuous movement on holding "Up".
-    document.getElementById("upButton").addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      if (!upInterval) {
-        upInterval = setInterval(() => {
-          playerY = Math.max(playerY - movementPerInterval, 0);
-        }, mobileButtonInterval);
-      }
-    });
-    document.getElementById("upButton").addEventListener("touchend", () => {
-      clearInterval(upInterval);
-      upInterval = null;
-    });
-    document.getElementById("upButton").addEventListener("touchcancel", () => {
-      clearInterval(upInterval);
-      upInterval = null;
-    });
-    
-    // Continuous movement on holding "Down".
-    document.getElementById("downButton").addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      if (!downInterval) {
-        downInterval = setInterval(() => {
-          playerY = Math.min(playerY + movementPerInterval, canvas.height - paddleHeight);
-        }, mobileButtonInterval);
-      }
-    });
-    document.getElementById("downButton").addEventListener("touchend", () => {
-      clearInterval(downInterval);
-      downInterval = null;
-    });
-    document.getElementById("downButton").addEventListener("touchcancel", () => {
-      clearInterval(downInterval);
-      downInterval = null;
-    });
-    
-    // Start the game loop.
+
     gameLoop();
   </script>
 </body>
 </html>
+
