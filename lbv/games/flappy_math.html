@@ -102,7 +102,7 @@
             <option value="hard">Hard</option>
         </select>
         <label>Number of Problems:</label>
-        <input type="number" id="problem-count" min="1" max="10" value="3">
+        <input type="number" id="problem-count" min="1" max="10" value="1">
         <button id="start-button" onclick="startGame()">Start</button>
     </div>
 
@@ -125,10 +125,10 @@
         canvas.height = window.innerHeight;
 
         const bird = { x: canvas.width / 4, y: canvas.height / 2, radius: 15, velocity: 0 };
-        const gravity = 0.5;
+        const gravity = 0.7; // Increased gravity for faster descent
         const pipeWidth = 50;
-        const minPipeGap = bird.radius * 6; // Adjusted minimum gap size
-        const maxPipeGap = bird.radius * 8; // Adjusted maximum gap size
+        const minPipeGap = bird.radius * 8; // Adjusted minimum gap size
+        const maxPipeGap = bird.radius * 13; // Adjusted maximum gap size
         const pipeSpacing = 300; // Reduced horizontal spacing between pipes
         let pipes = [];
         let gameRunning = false;
@@ -136,7 +136,7 @@
         let paused = false;
         let selectedOperations = [];
         let difficultyLevel = "easy";
-        let problemCount = 3;
+        let problemCount = 1;
         let problemsSolved = 0;
         let score = 0;
         let highScore = getCookie("highScore") || 0;
@@ -155,6 +155,12 @@
 
         function startGame() {
             selectedOperations = Array.from(document.querySelectorAll("input[type=checkbox]:checked")).map(cb => cb.value);
+
+            if (selectedOperations.length === 0) {
+                selectedOperations = ["+"]; // Default to addition if no operations are selected
+                alert("No operations selected. Defaulting to Addition (+).");
+            }
+
             difficultyLevel = document.getElementById("difficulty").value;
             problemCount = parseInt(document.getElementById("problem-count").value);
 
@@ -202,8 +208,9 @@
 
         function generatePipes() {
             setInterval(() => {
-                const gap = Math.random() * (maxPipeGap - minPipeGap) + minPipeGap;
-                const topHeight = Math.random() * (canvas.height - gap - 150) + 50;
+                const gap = Math.max(minPipeGap, Math.min(Math.random() * (maxPipeGap - minPipeGap) + minPipeGap, maxPipeGap)); // Ensure gap is within bounds
+                const maxTopHeight = canvas.height - gap - 50; // Ensure enough space for the gap
+                const topHeight = Math.random() * (maxTopHeight - 50) + 50; // Ensure top pipe is not too small or too large
                 const bottomHeight = topHeight + gap;
 
                 pipes.push({
@@ -332,7 +339,7 @@
             }
 
             if (event.code === "Space") {
-                bird.velocity = -8;
+                bird.velocity = -10; // Increased upward velocity for faster movement
                 gameStarted = true;
             } else if (event.code === "Enter") {
                 checkAnswer();
