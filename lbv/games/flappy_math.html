@@ -127,9 +127,9 @@
         const bird = { x: canvas.width / 4, y: canvas.height / 2, radius: 15, velocity: 0 };
         const gravity = 0.5;
         const pipeWidth = 50;
-        const minPipeGap = bird.radius * 7; // Increased gap size
-        const maxPipeGap = bird.radius * 11; // Increased gap size
-        const pipeSpacing = 400; // Horizontal spacing between pipes
+        const minPipeGap = bird.radius * 6; // Adjusted minimum gap size
+        const maxPipeGap = bird.radius * 8; // Adjusted maximum gap size
+        const pipeSpacing = 300; // Reduced horizontal spacing between pipes
         let pipes = [];
         let gameRunning = false;
         let gameStarted = false;
@@ -203,19 +203,18 @@
         function generatePipes() {
             setInterval(() => {
                 const gap = Math.random() * (maxPipeGap - minPipeGap) + minPipeGap;
-                const maxTopHeight = canvas.height - gap - 150;
-                const topHeight = Math.random() * (maxTopHeight - 50) + 50;
+                const topHeight = Math.random() * (canvas.height - gap - 150) + 50;
                 const bottomHeight = topHeight + gap;
 
                 pipes.push({
-                    x: canvas.width + pipeSpacing,
+                    x: canvas.width,
                     width: pipeWidth,
                     top: topHeight,
                     bottom: bottomHeight,
                     passed: false,
                     collidable: true,
                 });
-            }, 3000); // Pipe generation interval
+            }, 2500); // Reduced pipe generation interval
         }
 
         function updateGame() {
