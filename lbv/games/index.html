@@ -76,6 +76,22 @@
     }
 
     window.onload = fetchVersion;
+
+    // Konami code: up up down down left right left right b a
+    const konamiCode = [38,38,40,40,37,39,37,39,66,65];
+    let konamiIndex = 0;
+
+    document.addEventListener('keydown', function(e) {
+        if (e.keyCode === konamiCode[konamiIndex]) {
+            konamiIndex++;
+            if (konamiIndex === konamiCode.length) {
+                document.getElementById('secret-games').style.display = 'block';
+                konamiIndex = 0;
+            }
+        } else {
+            konamiIndex = 0;
+        }
+    });
     </script>
 
 </head>
@@ -97,6 +113,13 @@
         <a href="pong_words.html">📚 Pong word</a>
         <a href="geo_drop.html">Geo drop!!!</a>
         <a href="speed/Formula_Speed.html">Formula Speed</a>
+    </div>
+    <!-- Secret Games Section (hidden by default) -->
+    <div id="secret-games" style="display:none; margin-top:30px;">
+        <h2>🕹️ Secret Games 🕹️</h2>
+        <div class="game-buttons">
+            <a href="secret_5342/poker.html">Poker?</a>
+        </div>
     </div>
 </div>
 
