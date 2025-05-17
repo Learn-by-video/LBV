@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Word Pong - Fullscreen with Mobile Controls</title>
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
+  <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
   <style>
     /* Reset & Fullscreen Styles */
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -54,6 +54,37 @@
       border-radius: 5px;
       background-color: rgba(255, 255, 255, 0.9);
     }
+    /* Settings Button & Menu */
+    #settingsButton {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 30px;
+      color: white;
+      cursor: pointer;
+      z-index: 20;
+    }
+    #settingsMenu {
+      position: absolute;
+      top: 50px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 10px;
+      border-radius: 5px;
+      display: none;
+      z-index: 20;
+    }
+    #settingsMenu p {
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+    #settingsMenu button {
+      margin: 5px;
+      padding: 5px 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -64,10 +95,18 @@
       <button id="upButton">↑</button>
       <button id="downButton">↓</button>
     </div>
+    <!-- Settings Button and Menu -->
+    <div id="settingsButton">⚙️</div>
+    <div id="settingsMenu">
+      <p>Set AI Difficulty</p>
+      <button data-level="1">Level 1</button>
+      <button data-level="2">Level 2</button>
+      <button data-level="3">Level 3</button>
+    </div>
   </div>
 
   <script>
-    // Get canvas, context and score display.
+    // Get canvas, context, and score display.
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
     const scoreDisplay = document.getElementById("score");
@@ -76,12 +115,12 @@
     function resizeCanvas() {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
-      aiX = canvas.width - paddleWidth - 20; // Adjust AI paddle position
+      aiX = canvas.width - paddleWidth - 20;
     }
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("load", resizeCanvas);
 
-    // Pong game variables.
+    // Game variables.
     const paddleWidth = 10;
     const paddleHeight = 100;
     const ballRadius = 10;
@@ -103,6 +142,10 @@
     let aiScore = 0;
     let gamePaused = false;
 
+    // AI settings.
+    const aiMovementFactor = 0.1;  // How quickly the AI follows its target.
+    let aiMissProbability = 0.3;   // Default: Level 1 = 30% chance to miss the ball.
+
     function update() {
       if (!gamePaused) {
         // Update ball position.
@@ -116,20 +159,29 @@
 
         // Check collision with player's paddle.
         if (ballX - ballRadius < playerX + paddleWidth &&
-            ballY > playerY && ballY < playerY + paddleHeight) {
+            ballY > playerY &&
+            ballY < playerY + paddleHeight) {
           ballSpeedX = -ballSpeedX;
         }
 
         // Check collision with AI paddle.
         if (ballX + ballRadius > aiX &&
-            ballY > aiY && ballY < aiY + paddleHeight) {
-          ballSpeedX = -ballSpeedX;
+            ballY > aiY &&
+            ballY < aiY + paddleHeight) {
+          // AI hits the ball only if it doesn't miss.
+          if (Math.random() > aiMissProbability) {
+            ballSpeedX = -ballSpeedX;
+          }
         }
 
-        // Simple AI movement.
-        let aiCenter = aiY + paddleHeight / 2;
-        let diff = ballY - aiCenter;
-        aiY += diff * 0.1;
+        // Dynamic AI paddle movement.
+        // Set a target position for the AI (centered on the ball).
+        let targetY = ballY - (paddleHeight / 2);
+        // Introduce a random offset if the ball is moving toward the AI.
+        if (ballSpeedX > 0) {
+          targetY += (Math.random() - 0.5) * 50; // Random offset up to ±25px.
+        }
+        aiY += (targetY - aiY) * aiMovementFactor;
 
         // Update player position.
         playerY += playerSpeed;
@@ -151,22 +203,23 @@
     function resetBall() {
       ballX = canvas.width / 2;
       ballY = canvas.height / 2;
+      // Reverse ball direction so it heads toward the scorer.
       ballSpeedX = -ballSpeedX;
     }
 
     function draw() {
-      // Clear canvas.
+      // Clear the canvas.
       ctx.fillStyle = "black";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw player paddle.
+      // Draw player's paddle.
       ctx.fillStyle = "white";
       ctx.fillRect(playerX, playerY, paddleWidth, paddleHeight);
 
       // Draw AI paddle.
       ctx.fillRect(aiX, aiY, paddleWidth, paddleHeight);
 
-      // Draw ball.
+      // Draw the ball.
       ctx.beginPath();
       ctx.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
       ctx.fill();
@@ -175,7 +228,7 @@
       ctx.font = "24px Arial";
       ctx.fillStyle = "white";
       ctx.textAlign = "center";
-      ctx.fillText(`Player: ${playerScore} - AI: ${aiScore}`, canvas.width / 2, 10);
+      ctx.fillText(`Player: ${playerScore} - AI: ${aiScore}`, canvas.width / 2, 30);
     }
 
     function gameLoop() {
@@ -184,17 +237,41 @@
       requestAnimationFrame(gameLoop);
     }
 
+    // Keyboard controls.
     window.addEventListener("keydown", (e) => {
       if (e.key === "ArrowUp") playerSpeed = -5;
       if (e.key === "ArrowDown") playerSpeed = 5;
     });
-
+    
     window.addEventListener("keyup", () => {
       playerSpeed = 0;
+    });
+    
+    // Settings menu functionality.
+    const settingsButton = document.getElementById("settingsButton");
+    const settingsMenu = document.getElementById("settingsMenu");
+
+    settingsButton.addEventListener("click", () => {
+      settingsMenu.style.display = settingsMenu.style.display === "block" ? "none" : "block";
+    });
+
+    document.querySelectorAll("#settingsMenu button").forEach(button => {
+      button.addEventListener("click", (e) => {
+        const level = e.target.getAttribute("data-level");
+        if (level === "1") {
+          aiMissProbability = 0.3;
+        } else if (level === "2") {
+          aiMissProbability = 0.2;
+        } else if (level === "3") {
+          aiMissProbability = 0.1;
+        }
+        // Hide the menu after selection.
+        settingsMenu.style.display = "none";
+        console.log("Selected AI Difficulty Level", level, "with miss probability", aiMissProbability);
+      });
     });
 
     gameLoop();
   </script>
 </body>
 </html>
-
