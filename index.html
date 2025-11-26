@@ -1,21 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>L.B.V. - Main Page</title>
 
-    <!-- SEO Meta Tags -->
     <meta name="description" content="L.B.V. - Learn by Video. Explore facts, videos, and games in an interactive educational platform." />
     <meta name="keywords" content="L.B.V, Learn by Video, educational platform, facts, videos, games, learning" />
     <meta name="author" content="L.B.V. Team" />
 
-    <!-- Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
     <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
     <meta name="theme-color" content="#003366">
 
-    <!-- Open Graph for Social & Search -->
     <meta property="og:title" content="L.B.V. - Learn by Video" />
     <meta property="og:description" content="Explore facts, videos, and games in an engaging educational platform." />
     <meta property="og:image" content="https://lbv.giize.com/l-b-v.jpg" />
@@ -66,7 +63,7 @@
             background: #ddd;
         }
         #tools-section {
-            display: none; /* Hidden by default */
+            display: none;
             margin-top: 20px;
         }
         #tools-button {
@@ -106,41 +103,57 @@
             background: #111;
             color: #fff;
             border-radius: 12px;
-            padding: 28px;
-            max-width: 420px;
+            padding: 24px;
+            max-width: 640px;
             width: 100%;
             box-shadow: 0 8px 30px rgba(0,0,0,0.6);
-            text-align: center;
+            text-align: left;
         }
         .modal h2 {
-            margin: 0 0 12px 0;
-            font-size: 22px;
+            margin: 0 0 8px 0;
+            font-size: 20px;
+            text-align: center;
         }
         .modal p {
-            margin: 0 0 16px 0;
+            margin: 0 0 12px 0;
             color: #ddd;
+            font-size: 14px;
+            text-align: center;
         }
-        .modal .controls {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-top: 12px;
-            flex-wrap: wrap;
-        }
-        .modal input[type="number"] {
-            width: 140px;
-            padding: 10px 12px;
+        .modal label { display:block; margin: 8px 0 6px 0; color:#ccc; font-size:13px; }
+        .modal textarea {
+            width: 100%;
+            min-height: 140px;
+            resize: vertical;
+            padding: 10px;
             border-radius: 8px;
             border: none;
             outline: none;
-            font-size: 16px;
-            text-align: center;
+            font-size: 14px;
+            background: #0b0b0b;
+            color: #eaeaea;
+        }
+        .controls-row {
+            display:flex;
+            gap:10px;
+            margin-top:12px;
+            flex-wrap:wrap;
+            align-items:center;
+        }
+        .modal input[type="number"], .modal input[type="text"], .modal select {
+            padding:10px;
+            border-radius:8px;
+            border:none;
+            outline:none;
+            background:#0b0b0b;
+            color:#eaeaea;
+            font-size:14px;
         }
         .btn {
             background: #00f2ea;
             color: #000;
-            padding: 12px 20px;
-            font-size: 16px;
+            padding: 10px 16px;
+            font-size: 14px;
             border: none;
             border-radius: 10px;
             font-weight: bold;
@@ -157,10 +170,15 @@
             box-shadow: none;
             border: 1px solid #444;
         }
+        .small {
+            font-size: 12px;
+            color: #aaa;
+        }
 
-        @media (max-width: 480px) {
-            .modal { padding: 18px; }
-            .modal input[type="number"] { width: 100%; max-width: 240px; }
+        @media (max-width: 560px) {
+            .modal { padding: 14px; }
+            .modal textarea { min-height: 110px; }
+            .controls-row { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
@@ -171,14 +189,12 @@
     <p>Explore Facts, Videos, and Games!</p>
 </header>
 
-<!-- Navigation Links -->
 <div class="nav-links">
     <a href="/lbv/facts/">Facts</a>
     <a href="/lbv/videos/">Videos</a>
     <a href="/lbv/games/">Games</a>
 </div>
 
-<!-- Hidden Tools Section with Button -->
 <div id="tools-section">
     <h2>🔧 Tools 🔧</h2>
     <p>Secret tools unlocked!</p>
@@ -189,43 +205,61 @@
     <p>© 2025 L.B.V. - Learn by Video. All rights reserved.</p>
 </footer>
 
-<!-- Transparent Version Banner -->
 <div class="version-banner">
     Site Version: <span id="siteVersion">Loading...</span>
 </div>
 
-<!-- History Flood Modal (hidden by default) -->
+<!-- History Flood Modal (enhanced) -->
 <div id="historyModalOverlay" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true">
     <div class="modal" role="document">
-        <h2>History Flood Tool</h2>
-        <p>Enter how many times to repeat this page in history (enter a positive number).</p>
-        <div class="controls">
-            <input id="historyAmount" type="number" min="1" placeholder="e.g. 20" />
+        <h2>History Flood Tool — Randomized Sites</h2>
+        <p>Provide a list of site identifiers (one per line). The tool will push fake history entries using these items randomly. By default it will go through the list once (no repeats within that run). Use "Cycles" to repeat the whole randomized set multiple times.</p>
+
+        <label for="sitesList">Sites (one per line). These are used to build unique history paths — they don't navigate away from this page:</label>
+        <textarea id="sitesList" placeholder="example.com
+example.org/page
+youtube.com/watch?v=abc"></textarea>
+
+        <div class="controls-row" style="margin-top:10px;">
+            <div style="display:flex;gap:8px;align-items:center;">
+                <label class="small" for="cycles">Cycles</label>
+                <input id="cycles" type="number" min="1" value="1" style="width:80px" />
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center;">
+                <label class="small" for="capPerCycle">Max pushes per cycle (optional)</label>
+                <input id="capPerCycle" type="number" min="1" placeholder="leave blank = all" style="width:110px" />
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:center;">
+                <label class="small" for="useFullPath">Use as path or hash?</label>
+                <select id="useFullPath">
+                    <option value="path">/flood/[site]</option>
+                    <option value="hash">#/flood/[site]</option>
+                </select>
+            </div>
         </div>
-        <div class="controls" style="margin-top:16px;">
-            <button class="btn" id="floodBtn">Flood History</button>
+
+        <div class="controls-row" style="margin-top:14px;">
+            <button class="btn" id="startFloodBtn">Start Flood</button>
             <button class="btn secondary" id="closeModalBtn">Cancel</button>
         </div>
-        <p style="margin-top:12px; font-size:12px; color:#888;">
-            Shortcut: Ctrl + Alt + Shift + Z
+
+        <p class="small" style="margin-top:12px; text-align:center;">
+            Shortcut to open: Ctrl + Alt + Shift + Z
         </p>
     </div>
 </div>
 
-<!-- Botpress Webchat Injected at the End -->
-<script src="https://cdn.botpress.cloud/webchat/v2.4/inject.js"></script>
-<script src="https://files.bpcontent.cloud/2025/05/05/15/20250505153238-7V8LNUEO.js"></script>
-
 <script>
-    // Konami code logic (kept from original)
+    // Konami code logic (kept)
     (function() {
-        const konamiCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Up, Up, Down, Down, Left, Right, Left, Right, B, A
+        const konamiCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
         let inputKeys = [];
-
         document.addEventListener("keydown", function(event) {
             inputKeys.push(event.keyCode);
             if (inputKeys.toString().indexOf(konamiCode.toString()) > -1) {
-                document.getElementById("tools-section").style.display = "block"; // Show tools section
+                document.getElementById("tools-section").style.display = "block";
                 inputKeys = [];
             }
         });
@@ -243,98 +277,152 @@
     }
     window.onload = fetchVersion;
 
-    // Modal controls for History Flood popup
+    // History modal controls and randomized no-repeat shuffle logic
     (function() {
         const overlay = document.getElementById('historyModalOverlay');
-        const amountInput = document.getElementById('historyAmount');
-        const floodBtn = document.getElementById('floodBtn');
+        const sitesTextarea = document.getElementById('sitesList');
+        const cyclesInput = document.getElementById('cycles');
+        const capPerCycleInput = document.getElementById('capPerCycle');
+        const useFullPathSelect = document.getElementById('useFullPath');
+        const startBtn = document.getElementById('startFloodBtn');
         const closeModalBtn = document.getElementById('closeModalBtn');
 
         function openHistoryModal() {
-            amountInput.value = '';
             overlay.style.display = 'flex';
             overlay.setAttribute('aria-hidden', 'false');
-            amountInput.focus();
+            sitesTextarea.focus();
         }
-
         function closeHistoryModal() {
             overlay.style.display = 'none';
             overlay.setAttribute('aria-hidden', 'true');
         }
 
-        function floodHistory(num) {
-            // Validate
-            const count = parseInt(num, 10);
-            if (!count || count <= 0) {
-                alert("Please enter a valid positive number.");
+        // Fisher-Yates shuffle
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function buildPathFor(site, cycleIndex, itemIndex, useHash) {
+            // Create a reasonably safe path fragment using encodeURIComponent
+            const safe = encodeURIComponent(site).replace(/%20/g, '+');
+            if (useHash) {
+                return '#/flood/' + safe + '/' + cycleIndex + '-' + itemIndex;
+            } else {
+                return '/flood/' + safe + '/' + cycleIndex + '-' + itemIndex;
+            }
+        }
+
+        function validateAndParseSites(text) {
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            // deduplicate identical lines while preserving order
+            const seen = new Set();
+            const unique = [];
+            for (const l of lines) {
+                if (!seen.has(l)) {
+                    seen.add(l);
+                    unique.push(l);
+                }
+            }
+            return unique;
+        }
+
+        function pushHistoryEntriesForList(sites, cycles, capPerCycle, useHash) {
+            // total pushes calculation
+            const perCycle = capPerCycle && capPerCycle > 0 ? Math.min(capPerCycle, sites.length) : sites.length;
+            const total = perCycle * cycles;
+            const SAFETY_CAP = 5000;
+            if (total > SAFETY_CAP) {
+                if (!confirm("You are about to push " + total + " history entries. This may affect browser performance. Continue?")) {
+                    return false;
+                }
+            }
+
+            let pushCount = 0;
+            for (let c = 1; c <= cycles; c++) {
+                // shuffle a copy for this cycle to ensure no repeats within a cycle
+                const shuffled = shuffleArray(sites.slice());
+                const limit = capPerCycle && capPerCycle > 0 ? Math.min(capPerCycle, shuffled.length) : shuffled.length;
+
+                for (let i = 0; i < limit; i++) {
+                    const site = shuffled[i];
+                    const path = buildPathFor(site, c, i+1, useHash);
+                    try {
+                        // When using hash, modify location.hash; otherwise pushState
+                        if (useHash) {
+                            // Use replace first to avoid interfering with future pages, then push small state
+                            location.hash = path;
+                            history.pushState({}, '', path);
+                        } else {
+                            history.pushState({}, '', path);
+                        }
+                    } catch (e) {
+                        console.error("push failed on iteration", c, i, e);
+                        // stop if pushState is failing repeatedly
+                        return false;
+                    }
+                    pushCount++;
+                }
+            }
+
+            alert("History flood complete: " + pushCount + " entries pushed.");
+            return true;
+        }
+
+        startBtn.addEventListener('click', function() {
+            const raw = sitesTextarea.value;
+            const sites = validateAndParseSites(raw);
+            if (!sites.length) {
+                alert("Please enter at least one site or identifier in the list.");
                 return;
             }
 
-            // A safety cap to prevent accidental huge loops; increase if you understand the risk.
-            const CAP = 5000;
-            if (count > CAP) {
-                if (!confirm("You entered " + count + ". This may impact browser performance. Continue?")) {
-                    return;
-                }
-            }
+            let cycles = parseInt(cyclesInput.value, 10);
+            if (!cycles || cycles < 1) cycles = 1;
 
-            const url = window.location.href;
-            for (let i = 1; i <= count; i++) {
-                // Use a simple state object. Some browsers limit history length but this pushes states as requested.
-                try {
-                    history.pushState({}, '', i === count ? url : i.toString());
-                } catch (e) {
-                    // If pushState fails for any reason, break to avoid infinite exceptions.
-                    console.error("pushState failed at iteration", i, e);
-                    break;
-                }
-            }
+            let capPerCycle = parseInt(capPerCycleInput.value, 10);
+            if (isNaN(capPerCycle) || capPerCycle < 1) capPerCycle = null;
 
-            alert(
-                "History flood successful! " +
-                window.location.href +
-                " now appears in your history " +
-                count +
-                (count === 1 ? " time." : " times.")
-            );
-        }
+            const useHash = useFullPathSelect.value === 'hash';
 
-        // Button handlers
-        floodBtn.addEventListener('click', function() {
-            floodHistory(amountInput.value || prompt('History flood amount: '));
-            closeHistoryModal();
+            // Run the push sequence (synchronous and fast). Close modal after start.
+            const ok = pushHistoryEntriesForList(sites, cycles, capPerCycle, useHash);
+            if (ok) closeHistoryModal();
         });
+
         closeModalBtn.addEventListener('click', closeHistoryModal);
 
-        // Close on overlay click (but not when clicking inside modal)
         overlay.addEventListener('click', function(e) {
             if (e.target === overlay) closeHistoryModal();
         });
 
-        // Close on Escape
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
+                if (overlay.style.display === 'flex') closeHistoryModal();
+            }
+            // Shortcut: Ctrl + Alt + Shift + Z opens the popup
+            if (e.ctrlKey && e.altKey && e.shiftKey && (e.key === 'Z' || e.key === 'z')) {
+                e.preventDefault();
                 if (overlay.style.display === 'flex') {
                     closeHistoryModal();
+                } else {
+                    openHistoryModal();
                 }
             }
         });
 
-        // Shortcut: Ctrl + Alt + Shift + Z opens the popup
-        document.addEventListener('keydown', function(e) {
-            // Check modifier keys and key "Z"/"z"
-            if (e.ctrlKey && e.altKey && e.shiftKey && (e.key === 'Z' || e.key === 'z')) {
-                e.preventDefault();
-                openHistoryModal();
-            }
-        });
-
-        // Expose for debugging if needed (not required)
+        // Expose for quick access (optional)
         window.openHistoryModal = openHistoryModal;
         window.closeHistoryModal = closeHistoryModal;
-        window.floodHistory = floodHistory;
     })();
 </script>
+
+<!-- Botpress Webchat Injected at the End (kept as in original) -->
+<script src="https://cdn.botpress.cloud/webchat/v2.4/inject.js"></script>
+<script src="https://files.bpcontent.cloud/2025/05/05/15/20250505153238-7V8LNUEO.js"></script>
 
 </body>
 </html>
