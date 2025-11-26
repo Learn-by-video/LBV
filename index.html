@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>L.B.V. - Main Page</title>
 
-  <meta name="description" content="L.B.V. - Learn by Video. Explore facts, videos, and games in an interactive educational platform." />
+  <!-- Note: description removed as requested -->
+
   <meta name="keywords" content="L.B.V, Learn by Video, educational platform, facts, videos, games, learning" />
   <meta name="author" content="L.B.V. Team" />
 
@@ -30,6 +31,7 @@
     .nav-links a { background:white; color:#003366; padding:12px 18px; border-radius:6px; text-decoration:none; font-weight:bold; }
     .version-banner { position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 0.95em; opacity: 0.8; }
 
+    /* Modal & controls */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -45,15 +47,14 @@
       color: #fff;
       border-radius: 12px;
       padding: 20px;
-      max-width: 720px;
+      max-width: 780px;
       width: 100%;
       box-shadow: 0 8px 30px rgba(0,0,0,0.6);
       text-align: left;
     }
     .modal h2 { margin: 0 0 8px 0; font-size: 20px; text-align:center; }
-    .modal p { margin: 6px 0 12px 0; color:#cfd8dc; font-size: 14px; text-align:center; }
     label { color:#cfd8dc; font-size:13px; display:block; margin-bottom:6px; }
-    textarea { width:100%; min-height:120px; resize:vertical; padding:10px; border-radius:8px; border:none; background:#071017; color:#e6f7f7; font-size:14px; }
+    textarea { width:100%; min-height:140px; resize:vertical; padding:10px; border-radius:8px; border:none; background:#071017; color:#e6f7f7; font-size:14px; }
     input[type="number"], input[type="text"], select { padding:8px 10px; border-radius:8px; border:none; background:#071017; color:#e6f7f7; font-size:14px; }
     .controls { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; align-items:center; }
     .btn { background: #00f2ea; color: #000; padding:10px 16px; border-radius:10px; border:none; font-weight:700; cursor:pointer; }
@@ -62,9 +63,11 @@
     .row { display:flex; gap:10px; align-items:center; margin-top:8px; flex-wrap:wrap; }
     .col { display:flex; flex-direction:column; gap:6px; }
 
-    @media (max-width:600px) {
+    .list-actions { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; align-items:center; }
+
+    @media (max-width:700px) {
       .modal { padding:14px; }
-      textarea { min-height:90px; }
+      textarea { min-height:110px; }
       .controls { flex-direction:column; align-items:stretch; }
     }
   </style>
@@ -73,17 +76,13 @@
 
 <header>
   <a href="index.html" style="color:white; text-decoration:none; font-size:22px; font-weight:bold;">L.B.V. - Learn by Video</a>
-  <p style="margin:6px 0 0 0;">Explore Facts, Videos, and Games!</p>
+  <!-- description removed as requested -->
 </header>
 
 <div class="nav-links">
   <a href="/lbv/facts/">Facts</a>
   <a href="/lbv/videos/">Videos</a>
   <a href="/lbv/games/">Games</a>
-</div>
-
-<div style="text-align:center; padding:12px;">
-  <button id="openToolsBtn" class="btn">Open History Flood Tool (Shortcut: Ctrl+Alt+Shift+Z)</button>
 </div>
 
 <footer>
@@ -94,73 +93,55 @@
   Site Version: <span id="siteVersion">Loading...</span>
 </div>
 
-<!-- Modal -->
+<!-- Modal (only opened by shortcut Ctrl+Alt+Shift+Z) -->
 <div id="historyModalOverlay" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true">
   <div class="modal" role="document">
-    <h2>History Flood Tool — urls.txt or Manual</h2>
-    <p>Load urls.txt or paste URLs (one per line). When the tool pushes entries for external URLs it will add ?u=(encoded-url) to the pushed path and attempt to copy that site's favicon and title (best-effort).</p>
+    <h2>History Flood Tool</h2>
 
-    <div class="row">
-      <div class="col" style="flex:1;">
-        <label for="sitesList">Sites (one per line) — you can also load from urls.txt</label>
-        <textarea id="sitesList" placeholder="https://example.com/page
+    <label for="sitesList">Sites (one per line) — loaded from urls.txt automatically. You can edit, add, or remove entries here. Changes are saved to local storage and can be downloaded as a new urls.txt.</label>
+    <textarea id="sitesList" placeholder="https://example.com/page
 https://another.example/path"></textarea>
-        <div class="controls">
-          <button id="loadUrlsBtn" class="btn">Load from urls.txt</button>
-          <button id="clearListBtn" class="btn secondary">Clear list</button>
-          <span id="loadedCount" class="small" style="align-self:center;">No file loaded</span>
-        </div>
 
-        <div class="row" style="margin-top:10px;">
-          <div class="col" style="flex:0 0 160px;">
-            <label class="small" for="cycles">Cycles</label>
-            <input id="cycles" type="number" min="1" value="1" />
-          </div>
-          <div class="col" style="flex:0 0 200px;">
-            <label class="small" for="capPerCycle">Max pushes per cycle (optional)</label>
-            <input id="capPerCycle" type="number" min="1" placeholder="leave blank = all" />
-          </div>
-          <div class="col" style="flex:0 0 160px;">
-            <label class="small" for="useFullPath">Push type</label>
-            <select id="useFullPath">
-              <option value="path">/flood/?u=[url]</option>
-              <option value="hash">#/flood/?u=[url]</option>
-            </select>
-          </div>
-        </div>
+    <div class="list-actions">
+      <input id="addUrlInput" type="text" placeholder="Add a URL and press Add" style="flex:1; min-width:200px;" />
+      <button id="addUrlBtn" class="btn">Add</button>
+      <button id="removeSelectedBtn" class="btn secondary">Remove Selected Lines</button>
+      <button id="downloadBtn" class="btn">Download urls.txt</button>
+      <span id="loadedCount" class="small">Loading...</span>
+    </div>
 
-        <div class="controls" style="margin-top:12px;">
-          <button id="startFloodBtn" class="btn">Start Flood (from list)</button>
-          <button id="previewBtn" class="btn secondary">Preview first 5 entries</button>
-        </div>
+    <div class="row" style="margin-top:10px;">
+      <div class="col" style="flex:0 0 160px;">
+        <label class="small" for="cycles">Cycles</label>
+        <input id="cycles" type="number" min="1" value="1" />
       </div>
-
-      <div style="width:18px;"></div>
-
-      <div class="col" style="flex:0 0 260px;">
-        <label class="small" for="manualCount">Manual Count (old method)</label>
-        <input id="manualCount" type="number" min="1" placeholder="Enter number of pushes" />
-        <div class="controls" style="margin-top:8px;">
-          <button id="startManualBtn" class="btn">Flood Current Page N times</button>
-          <button id="startManualWithPathBtn" class="btn secondary">Flood with numeric paths</button>
-        </div>
-
-        <p class="small" style="margin-top:10px;">
-          Manual Count behavior:
-          - "Flood Current Page N times" pushes N entries with the current URL as the final entry.
-          - "Flood with numeric paths" pushes /1, /2, ... then leaves the last pushed state.
-        </p>
+      <div class="col" style="flex:0 0 200px;">
+        <label class="small" for="capPerCycle">Max pushes per cycle (optional)</label>
+        <input id="capPerCycle" type="number" min="1" placeholder="leave blank = all" />
+      </div>
+      <div class="col" style="flex:0 0 160px;">
+        <label class="small" for="useFullPath">Push type</label>
+        <select id="useFullPath">
+          <option value="path">/flood/?u=[url]</option>
+          <option value="hash">#/flood/?u=[url]</option>
+        </select>
       </div>
     </div>
 
-    <div style="margin-top:12px; text-align:center;">
+    <div class="controls" style="margin-top:12px;">
+      <button id="startFloodBtn" class="btn">Start Flood (from list)</button>
+      <button id="previewBtn" class="btn secondary">Preview first 5 entries</button>
       <button id="closeModalBtn" class="btn secondary">Close</button>
+    </div>
+
+    <div style="margin-top:12px; text-align:center;" class="small">
+      Open this tool with Ctrl + Alt + Shift + Z
     </div>
   </div>
 </div>
 
 <script>
-  // Version fetch
+  // fetch version if available
   (function fetchVersion(){
     fetch('/version.txt?nocache=' + Date.now())
       .then(r => r.text())
@@ -168,10 +149,9 @@ https://another.example/path"></textarea>
       .catch(() => { document.getElementById('siteVersion').textContent = 'Unavailable'; });
   })();
 
-  // Modal handling & shortcut
+  // Modal open/close only via Ctrl+Alt+Shift+Z or Escape to close
   (function() {
     const overlay = document.getElementById('historyModalOverlay');
-    const openBtn = document.getElementById('openToolsBtn');
     const closeBtn = document.getElementById('closeModalBtn');
 
     function openModal() {
@@ -184,7 +164,6 @@ https://another.example/path"></textarea>
       overlay.setAttribute('aria-hidden', 'true');
     }
 
-    openBtn.addEventListener('click', openModal);
     closeBtn.addEventListener('click', closeModal);
     overlay.addEventListener('click', function(e){ if (e.target === overlay) closeModal(); });
 
@@ -195,48 +174,31 @@ https://another.example/path"></textarea>
       }
       if (e.key === 'Escape' && overlay.style.display === 'flex') closeModal();
     });
+
+    // Expose for debugging if needed
+    window.openHistoryModal = openModal;
+    window.closeHistoryModal = closeModal;
   })();
 
-  // Main flood logic with favicon/title copying
+  // Main behavior: auto-load urls.txt on page load, merge with local storage extras, allow edits and download.
   (function() {
-    const loadBtn = document.getElementById('loadUrlsBtn');
-    const clearBtn = document.getElementById('clearListBtn');
     const sitesTextarea = document.getElementById('sitesList');
     const loadedCountEl = document.getElementById('loadedCount');
+    const addUrlInput = document.getElementById('addUrlInput');
+    const addUrlBtn = document.getElementById('addUrlBtn');
+    const removeSelectedBtn = document.getElementById('removeSelectedBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+
     const startFloodBtn = document.getElementById('startFloodBtn');
     const previewBtn = document.getElementById('previewBtn');
     const cyclesInput = document.getElementById('cycles');
     const capPerCycleInput = document.getElementById('capPerCycle');
     const useFullPathSelect = document.getElementById('useFullPath');
 
-    const manualCountInput = document.getElementById('manualCount');
-    const startManualBtn = document.getElementById('startManualBtn');
-    const startManualWithPathBtn = document.getElementById('startManualWithPathBtn');
-
     const SAFETY_CAP = 5000;
+    const STORAGE_KEY = 'historyFlood.extraUrls';
 
-    loadBtn.addEventListener('click', async function() {
-      loadedCountEl.textContent = 'Loading...';
-      try {
-        const res = await fetch('/urls.txt?nocache=' + Date.now());
-        if (!res.ok) throw new Error('Fetch failed: ' + res.status);
-        const text = await res.text();
-        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-        const unique = Array.from(new Set(lines));
-        sitesTextarea.value = unique.join('\n');
-        loadedCountEl.textContent = unique.length + ' lines loaded from urls.txt';
-      } catch (err) {
-        console.error(err);
-        loadedCountEl.textContent = 'Failed to load urls.txt';
-        alert('Could not load urls.txt. Make sure the file exists at the site root and is accessible.');
-      }
-    });
-
-    clearBtn.addEventListener('click', function() {
-      sitesTextarea.value = '';
-      loadedCountEl.textContent = 'List cleared';
-    });
-
+    // Helper: parse text into unique array
     function parseSites(text) {
       const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
       const seen = new Set();
@@ -247,6 +209,145 @@ https://another.example/path"></textarea>
       return out;
     }
 
+    // Save current textarea to localStorage extras (user additions)
+    function saveExtrasFromTextarea() {
+      const current = parseSites(sitesTextarea.value);
+      // We keep everything in textarea in localStorage as "extras"
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(current));
+      } catch (e) {
+        console.warn('Could not save to localStorage', e);
+      }
+    }
+
+    // Download current textarea contents as urls.txt
+    function downloadUrlsTxt() {
+      const content = sitesTextarea.value.split(/\r?\n/).map(l => l.trim()).filter(Boolean).join('\n');
+      const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'urls.txt';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    // Load urls.txt from server, merge with any saved extras in localStorage, then populate textarea
+    async function loadUrlsTxtAndMerge() {
+      loadedCountEl.textContent = 'Loading...';
+      let fetched = [];
+      try {
+        const res = await fetch('/urls.txt?nocache=' + Date.now());
+        if (res.ok) {
+          const text = await res.text();
+          fetched = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        } else {
+          console.warn('urls.txt not found or not accessible:', res.status);
+        }
+      } catch (e) {
+        console.warn('Failed to fetch urls.txt (network/CORS?):', e);
+      }
+
+      // Load extras from localStorage
+      let extras = [];
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) extras = JSON.parse(raw);
+      } catch (e) {
+        console.warn('Failed to read extras from localStorage', e);
+      }
+
+      // Merge: fetched first, then extras but keep unique order
+      const combined = [];
+      const seen = new Set();
+      for (const u of fetched.concat(extras)) {
+        if (!u) continue;
+        if (!seen.has(u)) {
+          seen.add(u);
+          combined.push(u);
+        }
+      }
+
+      sitesTextarea.value = combined.join('\n');
+      loadedCountEl.textContent = combined.length + ' entries loaded (from urls.txt + local additions)';
+      saveExtrasFromTextarea();
+    }
+
+    // Add a single URL from input to textarea (and save)
+    addUrlBtn.addEventListener('click', function() {
+      const val = addUrlInput.value.trim();
+      if (!val) return;
+      const current = parseSites(sitesTextarea.value);
+      if (!current.includes(val)) {
+        current.push(val);
+        sitesTextarea.value = current.join('\n');
+        saveExtrasFromTextarea();
+        loadedCountEl.textContent = current.length + ' entries loaded (from urls.txt + local additions)';
+      }
+      addUrlInput.value = '';
+      addUrlInput.focus();
+    });
+
+    // Remove selected lines => selection-based removal: remove lines that are within selection range
+    removeSelectedBtn.addEventListener('click', function() {
+      const selStart = sitesTextarea.selectionStart;
+      const selEnd = sitesTextarea.selectionEnd;
+      const text = sitesTextarea.value;
+      if (selStart === selEnd) {
+        // no selection: remove all
+        if (!confirm('No selection detected. Remove all entries?')) return;
+        sitesTextarea.value = '';
+        saveExtrasFromTextarea();
+        loadedCountEl.textContent = '0 entries loaded';
+        return;
+      }
+
+      // Determine which lines overlap selection
+      const before = text.slice(0, selStart);
+      const selected = text.slice(selStart, selEnd);
+      const after = text.slice(selEnd);
+
+      // Compute line indices
+      const allLines = text.split(/\r?\n/);
+      let charCount = 0;
+      const keep = [];
+      for (let i = 0; i < allLines.length; i++) {
+        const line = allLines[i];
+        const lineStart = charCount;
+        const lineEnd = charCount + line.length;
+        charCount += line.length + 1; // +1 for newline
+        // If line intersects selection range, skip it
+        if (lineEnd < selStart || lineStart >= selEnd) {
+          // keep
+          if (line.trim()) keep.push(line.trim());
+        }
+      }
+
+      sitesTextarea.value = keep.join('\n');
+      saveExtrasFromTextarea();
+      loadedCountEl.textContent = keep.length + ' entries loaded';
+    });
+
+    // Download button
+    downloadBtn.addEventListener('click', function() {
+      downloadUrlsTxt();
+    });
+
+    // Autosave changes to localStorage on blur or change
+    sitesTextarea.addEventListener('blur', saveExtrasFromTextarea);
+    sitesTextarea.addEventListener('change', saveExtrasFromTextarea);
+    sitesTextarea.addEventListener('input', function() {
+      // update loaded count live
+      const count = parseSites(sitesTextarea.value).length;
+      loadedCountEl.textContent = count + ' entries (editable)';
+    });
+
+    // Load automatically on script run
+    loadUrlsTxtAndMerge();
+
+    // --- History flood logic (kept simple & async-friendly) ---
     function shuffle(arr) {
       for (let i = arr.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -257,10 +358,8 @@ https://another.example/path"></textarea>
 
     function ensureFullUrl(u) {
       try {
-        // If scheme is present, new URL will work
         return new URL(u).toString();
       } catch (e) {
-        // Try https fallback
         try {
           return new URL('https://' + u).toString();
         } catch (e2) {
@@ -273,7 +372,7 @@ https://another.example/path"></textarea>
       const enc = encodeURIComponent(targetUrl);
       const suffix = '?u=' + enc + '&c=' + cycleIndex + '&i=' + itemIndex;
       if (useHash) {
-        return '#/flood/' + encodeURIComponent(targetUrl) + '/' + cycleIndex + '-' + itemIndex;
+        return '#/flood/?u=' + enc + '&c=' + cycleIndex + '&i=' + itemIndex;
       } else {
         return '/flood/' + suffix;
       }
@@ -288,7 +387,6 @@ https://another.example/path"></textarea>
         document.head.appendChild(link);
       }
       link.href = href;
-      // also set shortcut icon
       let sc = document.querySelector('link[rel="shortcut icon"]');
       if (!sc) {
         sc = document.createElement('link');
@@ -298,7 +396,7 @@ https://another.example/path"></textarea>
       sc.href = href;
     }
 
-    // Attempt to fetch the page and parse <title> and <link rel="icon"> (best-effort, may fail due to CORS)
+    // Best-effort: fetch title & icon (may be blocked by CORS)
     async function fetchTitleAndIcon(targetUrl) {
       const result = { title: null, icon: null };
       let parsed;
@@ -308,17 +406,12 @@ https://another.example/path"></textarea>
         return result;
       }
 
-      // Try fetch page HTML (may be blocked)
       try {
         const resp = await fetch(targetUrl, { mode: 'cors', credentials: 'omit' });
         if (resp && resp.ok) {
           const text = await resp.text();
-          // parse title
           const titleMatch = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
-          if (titleMatch) {
-            result.title = titleMatch[1].trim();
-          }
-          // parse icon link href
+          if (titleMatch) result.title = titleMatch[1].trim();
           const iconMatch = text.match(/<link[^>]+rel=["']?(?:shortcut icon|icon|apple-touch-icon)["']?[^>]*href=["']([^"']+)["']/i);
           if (iconMatch && iconMatch[1]) {
             try {
@@ -327,21 +420,17 @@ https://another.example/path"></textarea>
               result.icon = iconMatch[1];
             }
           } else {
-            // fallback to common locations
             result.icon = parsed.origin + '/favicon.ico';
           }
           return result;
         }
       } catch (e) {
-        // fetch failed, move to fallback
-        console.warn('Could not fetch target HTML (likely CORS):', e);
+        // ignore; fallback
       }
 
-      // Fallback: use hostname and google favicon API
-      const hostname = parsed.hostname;
-      result.title = hostname;
-      // Use Google favicon service (small but reliable)
-      result.icon = 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(hostname) + '&sz=64';
+      // fallback to hostname & google favicon
+      result.title = parsed.hostname;
+      result.icon = 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(parsed.hostname) + '&sz=64';
       return result;
     }
 
@@ -363,20 +452,16 @@ https://another.example/path"></textarea>
           const raw = shuffled[i];
           const full = ensureFullUrl(raw);
           const targetUrl = full || raw;
-
-          // build history path using ?u=encodedUrl when not using hash mode
           const historyPath = buildHistoryPathForUrl(targetUrl, c, i + 1, useHash);
 
-          // Best-effort: obtain title & icon, set document's title & favicon, then push state with title
           try {
             const info = await fetchTitleAndIcon(targetUrl);
             if (info.icon) setDocumentFavicon(info.icon);
             if (info.title) document.title = info.title;
 
-            // A tiny pause helps ensure the browser registers title/favicon change before pushState
+            // brief delay so browser may register title/favicon change
             await new Promise(res => setTimeout(res, 60));
 
-            // pushState: some browsers ignore the title param, but it's included for completeness
             history.pushState({}, info.title || document.title, historyPath);
             pushed++;
           } catch (e) {
@@ -385,7 +470,6 @@ https://another.example/path"></textarea>
             return false;
           }
 
-          // safety micro-yield so UI stays responsive when many entries
           if (pushed % 50 === 0) await new Promise(res => setTimeout(res, 40));
         }
       }
@@ -406,10 +490,8 @@ https://another.example/path"></textarea>
       try {
         for (let i = 1; i <= n; i++) {
           if (numericPaths) {
-            // push /1, /2, ...
             history.pushState({}, '/' + i.toString(), '/' + i.toString());
           } else {
-            // push numbered short state, final iteration restore original URL
             history.pushState({}, i === n ? originalUrl : i.toString(), i === n ? originalUrl : i.toString());
           }
         }
@@ -422,6 +504,7 @@ https://another.example/path"></textarea>
       }
     }
 
+    // Start/preview buttons
     startFloodBtn.addEventListener('click', async function() {
       const sites = parseSites(sitesTextarea.value);
       if (!sites.length) { alert('Please enter or load at least one site in the list.'); return; }
@@ -431,8 +514,9 @@ https://another.example/path"></textarea>
       if (isNaN(cap) || cap < 1) cap = null;
       const useHash = (useFullPathSelect.value === 'hash');
 
-      // Run flood (async)
       await pushHistoryFromList(sites, cycles, cap, useHash);
+      // persist any edits
+      saveExtrasFromTextarea();
     });
 
     previewBtn.addEventListener('click', function() {
@@ -447,16 +531,20 @@ https://another.example/path"></textarea>
       alert('Preview (first 5 entries):\n' + preview.join('\n'));
     });
 
-    // Manual handlers
-    startManualBtn.addEventListener('click', function() {
-      const n = parseInt(manualCountInput.value, 10);
-      if (!n || n < 1) { alert('Enter a positive integer'); return; }
-      floodManualCount(n, false);
+    // Hook Enter in addUrlInput to trigger add
+    addUrlInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        addUrlBtn.click();
+      }
     });
-    startManualWithPathBtn.addEventListener('click', function() {
-      const n = parseInt(manualCountInput.value, 10);
-      if (!n || n < 1) { alert('Enter a positive integer'); return; }
-      floodManualCount(n, true);
+
+    // Allow download by Ctrl+S while modal open (optional)
+    document.addEventListener('keydown', function(e) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && document.getElementById('historyModalOverlay').style.display === 'flex') {
+        e.preventDefault();
+        downloadBtn.click();
+      }
     });
   })();
 </script>
