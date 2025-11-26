@@ -148,9 +148,7 @@ https://another.example/path"></textarea>
       .catch(() => { document.getElementById('siteVersion').textContent = 'Unavailable'; });
   })();
 
-  // ---------------------------
-  // Utility helpers
-  // ---------------------------
+  // --------- Utilities ----------
   function parseSites(text) {
     const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
     const seen = new Set();
@@ -170,15 +168,18 @@ https://another.example/path"></textarea>
   }
 
   function ensureFullUrl(u) {
-    try {
-      return new URL(u).toString();
-    } catch (e) {
-      try {
-        return new URL('https://' + u).toString();
-      } catch (e2) {
-        return null;
-      }
+    try { return new URL(u).toString(); }
+    catch (e) {
+      try { return new URL('https://' + u).toString(); }
+      catch (e2) { return null; }
     }
+  }
+
+  // fetch with timeout helper
+  function fetchWithTimeout(url, opts = {}, timeout = 3000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    return fetch(url, Object.assign({}, opts, { signal: controller.signal })).finally(() => clearTimeout(id));
   }
 
   function getCurrentFaviconHref() {
@@ -204,14 +205,36 @@ https://another.example/path"></textarea>
     sc.href = href;
   }
 
-  // Best-effort: fetch title & icon (may be blocked by CORS)
+  // wait for image to load (used for favicon) with timeout
+  function waitForImageLoad(url, timeout = 1200) {
+    return new Promise((resolve) => {
+      if (!url) return resolve(false);
+      const img = new Image();
+      let done = false;
+      const t = setTimeout(() => {
+        if (!done) { done = true; resolve(false); }
+      }, timeout);
+      img.onload = () => { if (!done) { done = true; clearTimeout(t); resolve(true); } };
+      img.onerror = () => { if (!done) { done = true; clearTimeout(t); resolve(false); } };
+      // use crossorigin attribute to increase chance of successful fetch (not guaranteed)
+      try { img.crossOrigin = 'anonymous'; } catch (e) {}
+      img.src = url;
+      // if already cached and complete, load handlers might not fire in some browsers — check immediately
+      if (img.complete) {
+        if (!done) { done = true; clearTimeout(t); resolve(true); }
+      }
+    });
+  }
+
+  // fetch target page title & icon (best-effort). Uses timeout and fallbacks.
   async function fetchTitleAndIcon(targetUrl) {
     const result = { title: null, icon: null };
     let parsed;
     try { parsed = new URL(targetUrl); } catch (e) { return result; }
 
+    // Try fetch page HTML (CORS may block)
     try {
-      const resp = await fetch(targetUrl, { mode: 'cors', credentials: 'omit' });
+      const resp = await fetchWithTimeout(targetUrl, { mode: 'cors', credentials: 'omit' }, 3500);
       if (resp && resp.ok) {
         const text = await resp.text();
         const titleMatch = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
@@ -229,15 +252,13 @@ https://another.example/path"></textarea>
       // fetch failed (likely CORS) -> fallback
     }
 
-    // fallback to hostname & google favicon
+    // fallback: hostname and google favicon service
     result.title = parsed.hostname;
     result.icon = 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(parsed.hostname) + '&sz=64';
     return result;
   }
 
-  // ---------------------------
-  // Modal open/close only via shortcut
-  // ---------------------------
+  // --------- Modal open/close only via shortcut ----------
   (function modalShortcuts() {
     const overlay = document.getElementById('historyModalOverlay');
     const closeBtn = document.getElementById('closeModalBtn');
@@ -268,9 +289,7 @@ https://another.example/path"></textarea>
     window.closeHistoryModal = closeModal;
   })();
 
-  // ---------------------------
-  // Load urls.txt automatically, merge with local extras, allow edits/download
-  // ---------------------------
+  // --------- Load urls.txt and manage list ----------
   (function listManagement() {
     const sitesTextarea = document.getElementById('sitesList');
     const loadedCountEl = document.getElementById('loadedCount');
@@ -279,12 +298,11 @@ https://another.example/path"></textarea>
     const removeSelectedBtn = document.getElementById('removeSelectedBtn');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    const SAFETY_KEY = 'historyFlood.extraUrls';
+    const STORAGE_KEY = 'historyFlood.extraUrls';
 
     function saveExtrasFromTextarea() {
       const current = parseSites(sitesTextarea.value);
-      try { localStorage.setItem(SAFETY_KEY, JSON.stringify(current)); }
-      catch (e) { console.warn('Could not save to localStorage', e); }
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(current)); } catch (e) { console.warn('Could not save to localStorage', e); }
     }
 
     function downloadUrlsTxt() {
@@ -317,11 +335,9 @@ https://another.example/path"></textarea>
 
       let extras = [];
       try {
-        const raw = localStorage.getItem(SAFETY_KEY);
+        const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) extras = JSON.parse(raw);
-      } catch (e) {
-        console.warn('Failed to read extras from localStorage', e);
-      }
+      } catch (e) { console.warn('Failed to read extras from localStorage', e); }
 
       const combined = [];
       const seen = new Set();
@@ -389,15 +405,9 @@ https://another.example/path"></textarea>
 
     // load now
     loadUrlsTxtAndMerge();
-
-    // expose helpers for other scripts
-    window._historyFlood_getSites = () => parseSites(document.getElementById('sitesList').value);
-    window._historyFlood_saveExtras = saveExtrasFromTextarea;
   })();
 
-  // ---------------------------
-  // History flood: use /?u= encoded target URL, and when index.html is loaded with ?u=... clone title & favicon
-  // ---------------------------
+  // --------- History flood (sequential, wait-for-favicon to reduce off-by-one) ----------
   (function historyFlood() {
     const startFloodBtn = document.getElementById('startFloodBtn');
     const previewBtn = document.getElementById('previewBtn');
@@ -408,14 +418,12 @@ https://another.example/path"></textarea>
 
     function buildQueryPath(targetUrl, cycleIndex, itemIndex, useHash) {
       const enc = encodeURIComponent(targetUrl);
-      const suffix = '?u=' + enc + '&c=' + cycleIndex + '&i=' + itemIndex;
-      if (useHash) {
-        return '#?u=' + enc + '&c=' + cycleIndex + '&i=' + itemIndex;
-      } else {
-        return '/?' + 'u=' + enc + '&c=' + cycleIndex + '&i=' + itemIndex;
-      }
+      const suffix = 'u=' + enc + '&c=' + cycleIndex + '&i=' + itemIndex;
+      if (useHash) return '#?' + suffix;
+      return '/?' + suffix;
     }
 
+    // Core: sequentially process items, waiting for each favicon load (or timeout) before pushing the state.
     async function pushHistoryFromList(sites, cycles, capPerCycle, useHash) {
       const perCycle = capPerCycle && capPerCycle > 0 ? Math.min(capPerCycle, sites.length) : sites.length;
       const total = perCycle * cycles;
@@ -437,37 +445,49 @@ https://another.example/path"></textarea>
           const raw = shuffled[i];
           const full = ensureFullUrl(raw);
           const targetUrl = full || raw;
-          const historyPath = buildQueryPath(targetUrl, c, i + 1, useHash);
+          const path = buildQueryPath(targetUrl, c, i + 1, useHash);
 
           try {
+            // Get best-effort title/icon (may fallback)
             const info = await fetchTitleAndIcon(targetUrl);
+
+            // Set favicon href so browser will attempt to load it
             if (info.icon) setDocumentFavicon(info.icon);
+
+            // Wait for favicon to actually load (or timeout). This reduces the off-by-one where the previous icon remains.
+            await waitForImageLoad(info.icon, 1400).catch(() => false);
+
+            // Set document title (ensure it matches title passed to pushState)
             if (info.title) document.title = info.title;
 
-            // tiny pause to increase chance browser registers favicon/title before push
-            await new Promise(res => setTimeout(res, 80));
+            // Short extra pause to allow browser to register title change
+            await new Promise(res => setTimeout(res, 60));
 
-            // push state: many browsers ignore title param; we still set document.title and favicon
+            // Push the state. Many browsers ignore the title param, but we've set document.title too.
             if (useHash) {
-              history.pushState({}, info.title || document.title, location.pathname + location.search + historyPath);
+              // use current pathname and push hash
+              const newUrl = location.pathname + path;
+              history.pushState({}, info.title || document.title, newUrl);
             } else {
-              history.pushState({}, info.title || document.title, historyPath);
+              history.pushState({}, info.title || document.title, path);
             }
 
             pushed++;
+
+            // micro-yield to keep UI responsive on large runs
+            if (pushed % 20 === 0) await new Promise(res => setTimeout(res, 60));
           } catch (e) {
-            console.error('Failed during push for', targetUrl, e);
+            console.error('push failed for', targetUrl, e);
             alert('Stopping: an error occurred while pushing history entries. See console for details.');
+            // restore original title/favicon
             if (originalFavicon) setDocumentFavicon(originalFavicon);
             document.title = originalTitle;
             return false;
           }
-
-          if (pushed % 50 === 0) await new Promise(res => setTimeout(res, 40));
         }
       }
 
-      // restore original title & favicon
+      // restore original title & favicon after completion (keeps this run as "temporary" visual changes)
       if (originalFavicon) setDocumentFavicon(originalFavicon);
       document.title = originalTitle;
 
@@ -485,7 +505,6 @@ https://another.example/path"></textarea>
       const useHash = (useFullPathSelect.value === 'hash');
 
       await pushHistoryFromList(sites, cycles, cap, useHash);
-      // save edits
       try { localStorage.setItem('historyFlood.extraUrls', JSON.stringify(parseSites(document.getElementById('sitesList').value))); } catch (e) {}
     });
 
@@ -501,54 +520,44 @@ https://another.example/path"></textarea>
       alert('Preview (first 5 entries):\n' + preview.join('\n'));
     });
 
-    // Expose for debug
+    // Expose for debugging
     window._historyFlood_pushFromList = pushHistoryFromList;
   })();
 
-  // ---------------------------
-  // If this page is loaded with ?u=(url) then clone that site's title & favicon (best-effort)
-  // This makes /?u=... act as a "backup" page that visually represents the target.
-  // ---------------------------
+  // --------- If loaded with ?u=(url) clone title & favicon for that single view ----------
   (function handleIncomingQueryU() {
     async function run() {
       const params = new URLSearchParams(window.location.search);
       const uParam = params.get('u');
-      if (!uParam) return; // nothing to do
-
-      // Decode and ensure URL
+      if (!uParam) return;
       let target;
-      try {
-        // param is expected to be an encoded URL; decode then try to normalize
-        target = decodeURIComponent(uParam);
-      } catch (e) {
-        target = uParam;
-      }
+      try { target = decodeURIComponent(uParam); } catch (e) { target = uParam; }
       const full = ensureFullUrl(target) || target;
 
-      // Save original title & favicon so we could restore later if necessary (we keep them here changed)
       const originalTitle = document.title;
       const originalFavicon = getCurrentFaviconHref();
 
       try {
         const info = await fetchTitleAndIcon(full);
-        if (info.icon) setDocumentFavicon(info.icon);
+        if (info.icon) {
+          setDocumentFavicon(info.icon);
+          await waitForImageLoad(info.icon, 1400).catch(() => false);
+        }
         if (info.title) document.title = info.title;
-        // replace the state to keep the same URL but maintain nice title/favicon
         history.replaceState({}, info.title || document.title, window.location.pathname + window.location.search);
       } catch (e) {
-        console.warn('Failed to fetch title/icon for ?u target (CORS may block). Using hostname fallback.', e);
-        // fallback: set to hostname + google favicon handled by fetchTitleAndIcon already
+        console.warn('Failed to fetch title/icon for ?u target (CORS may block). Using fallback.', e);
         const info = await fetchTitleAndIcon(full);
-        if (info.icon) setDocumentFavicon(info.icon);
+        if (info.icon) {
+          setDocumentFavicon(info.icon);
+          await waitForImageLoad(info.icon, 1200).catch(() => false);
+        }
         if (info.title) document.title = info.title;
         history.replaceState({}, info.title || document.title, window.location.pathname + window.location.search);
       }
-
-      // Note: we do not automatically restore the original title/favicon because the page is acting as a representation for the target.
-      // If you want a temporary visual change during flood and automatic restore, the flood routine already restores after completion.
+      // Do not restore original; this view is intentionally representing the target.
     }
 
-    // run on microtask after load so DOM exists
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', run);
     } else {
