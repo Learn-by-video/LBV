@@ -1,428 +1,465 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>L.B.V. - Main Page</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>L.B.V. - Main Page</title>
 
-    <meta name="description" content="L.B.V. - Learn by Video. Explore facts, videos, and games in an interactive educational platform." />
-    <meta name="keywords" content="L.B.V, Learn by Video, educational platform, facts, videos, games, learning" />
-    <meta name="author" content="L.B.V. Team" />
+  <meta name="description" content="L.B.V. - Learn by Video. Explore facts, videos, and games in an interactive educational platform." />
+  <meta name="keywords" content="L.B.V, Learn by Video, educational platform, facts, videos, games, learning" />
+  <meta name="author" content="L.B.V. Team" />
 
-    <link rel="icon" type="image/png" sizes="32x32" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
-    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
-    <meta name="theme-color" content="#003366">
+  <link id="page-favicon" rel="icon" type="image/png" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
+  <meta name="theme-color" content="#003366">
 
-    <meta property="og:title" content="L.B.V. - Learn by Video" />
-    <meta property="og:description" content="Explore facts, videos, and games in an engaging educational platform." />
-    <meta property="og:image" content="https://lbv.giize.com/l-b-v.jpg" />
-    <meta property="og:url" content="https://lbv.giize.com" />
-    <meta name="twitter:card" content="summary_large_image">
+  <style>
+    html, body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #003366;
+      color: white;
+      text-align: center;
+      min-height: 100vh;
+    }
+    header, footer {
+      padding: 20px;
+      background: #003366;
+    }
+    .nav-links { display:flex; gap:12px; justify-content:center; padding:16px; flex-wrap:wrap; }
+    .nav-links a { background:white; color:#003366; padding:12px 18px; border-radius:6px; text-decoration:none; font-weight:bold; }
+    .version-banner { position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 0.95em; opacity: 0.8; }
 
-    <style>
-        html, body {
-            overflow-x: hidden;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #003366;
-            color: white;
-            text-align: center;
-            height: 100%;
-        }
-        header, footer {
-            background: #003366;
-            padding: 20px;
-        }
-        header a {
-            text-decoration: none;
-            color: white;
-            font-size: 24px;
-            font-weight: bold;
-        }
-        header a:hover {
-            text-decoration: underline;
-        }
-        .nav-links {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 15px;
-            padding: 20px;
-        }
-        .nav-links a {
-            background: white;
-            color: #003366;
-            padding: 15px 25px;
-            font-size: 18px;
-            font-weight: bold;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-        .nav-links a:hover {
-            background: #ddd;
-        }
-        #tools-section {
-            display: none;
-            margin-top: 20px;
-        }
-        #tools-button {
-            background: white;
-            color: #003366;
-            padding: 15px 25px;
-            font-size: 18px;
-            font-weight: bold;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        #tools-button:hover {
-            background: #ddd;
-        }
-        .version-banner {
-            position: fixed;
-            bottom: 10px;
-            width: 100%;
-            text-align: center;
-            font-size: 1em;
-            opacity: 0.7;
-        }
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 18px;
+    }
+    .modal {
+      background: #0b0b0b;
+      color: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 720px;
+      width: 100%;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+      text-align: left;
+    }
+    .modal h2 { margin: 0 0 8px 0; font-size: 20px; text-align:center; }
+    .modal p { margin: 6px 0 12px 0; color:#cfd8dc; font-size: 14px; text-align:center; }
+    label { color:#cfd8dc; font-size:13px; display:block; margin-bottom:6px; }
+    textarea { width:100%; min-height:120px; resize:vertical; padding:10px; border-radius:8px; border:none; background:#071017; color:#e6f7f7; font-size:14px; }
+    input[type="number"], input[type="text"], select { padding:8px 10px; border-radius:8px; border:none; background:#071017; color:#e6f7f7; font-size:14px; }
+    .controls { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; align-items:center; }
+    .btn { background: #00f2ea; color: #000; padding:10px 16px; border-radius:10px; border:none; font-weight:700; cursor:pointer; }
+    .btn.secondary { background:#2b2b2b; color:#fff; border:1px solid #444; box-shadow:none; }
+    .small { font-size:12px; color:#9aa7ac; }
+    .row { display:flex; gap:10px; align-items:center; margin-top:8px; flex-wrap:wrap; }
+    .col { display:flex; flex-direction:column; gap:6px; }
 
-        /* Modal (popup) styles */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.65);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            padding: 20px;
-        }
-        .modal {
-            background: #111;
-            color: #fff;
-            border-radius: 12px;
-            padding: 24px;
-            max-width: 640px;
-            width: 100%;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
-            text-align: left;
-        }
-        .modal h2 {
-            margin: 0 0 8px 0;
-            font-size: 20px;
-            text-align: center;
-        }
-        .modal p {
-            margin: 0 0 12px 0;
-            color: #ddd;
-            font-size: 14px;
-            text-align: center;
-        }
-        .modal label { display:block; margin: 8px 0 6px 0; color:#ccc; font-size:13px; }
-        .modal textarea {
-            width: 100%;
-            min-height: 140px;
-            resize: vertical;
-            padding: 10px;
-            border-radius: 8px;
-            border: none;
-            outline: none;
-            font-size: 14px;
-            background: #0b0b0b;
-            color: #eaeaea;
-        }
-        .controls-row {
-            display:flex;
-            gap:10px;
-            margin-top:12px;
-            flex-wrap:wrap;
-            align-items:center;
-        }
-        .modal input[type="number"], .modal input[type="text"], .modal select {
-            padding:10px;
-            border-radius:8px;
-            border:none;
-            outline:none;
-            background:#0b0b0b;
-            color:#eaeaea;
-            font-size:14px;
-        }
-        .btn {
-            background: #00f2ea;
-            color: #000;
-            padding: 10px 16px;
-            font-size: 14px;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 0 12px rgba(0,255,255,0.3);
-        }
-        .btn:hover {
-            box-shadow: 0 0 22px rgba(0,255,255,0.6);
-            transform: translateY(-1px);
-        }
-        .btn.secondary {
-            background: #333;
-            color: #fff;
-            box-shadow: none;
-            border: 1px solid #444;
-        }
-        .small {
-            font-size: 12px;
-            color: #aaa;
-        }
-
-        @media (max-width: 560px) {
-            .modal { padding: 14px; }
-            .modal textarea { min-height: 110px; }
-            .controls-row { flex-direction: column; align-items: stretch; }
-        }
-    </style>
+    @media (max-width:600px) {
+      .modal { padding:14px; }
+      textarea { min-height:90px; }
+      .controls { flex-direction:column; align-items:stretch; }
+    }
+  </style>
 </head>
 <body>
 
 <header>
-    <a href="index.html">L.B.V. - Learn by Video</a>
-    <p>Explore Facts, Videos, and Games!</p>
+  <a href="index.html" style="color:white; text-decoration:none; font-size:22px; font-weight:bold;">L.B.V. - Learn by Video</a>
+  <p style="margin:6px 0 0 0;">Explore Facts, Videos, and Games!</p>
 </header>
 
 <div class="nav-links">
-    <a href="/lbv/facts/">Facts</a>
-    <a href="/lbv/videos/">Videos</a>
-    <a href="/lbv/games/">Games</a>
+  <a href="/lbv/facts/">Facts</a>
+  <a href="/lbv/videos/">Videos</a>
+  <a href="/lbv/games/">Games</a>
 </div>
 
-<div id="tools-section">
-    <h2>🔧 Tools 🔧</h2>
-    <p>Secret tools unlocked!</p>
-    <button id="tools-button" onclick="window.location.href='/lbv/tools_5342/'">Access Tools</button>
+<div style="text-align:center; padding:12px;">
+  <button id="openToolsBtn" class="btn">Open History Flood Tool (Shortcut: Ctrl+Alt+Shift+Z)</button>
 </div>
 
 <footer>
-    <p>© 2025 L.B.V. - Learn by Video. All rights reserved.</p>
+  <p style="margin:0;">© Learn by Video. All rights reserved.</p>
 </footer>
 
 <div class="version-banner">
-    Site Version: <span id="siteVersion">Loading...</span>
+  Site Version: <span id="siteVersion">Loading...</span>
 </div>
 
-<!-- History Flood Modal (enhanced) -->
+<!-- Modal -->
 <div id="historyModalOverlay" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true">
-    <div class="modal" role="document">
-        <h2>History Flood Tool — Randomized Sites</h2>
-        <p>Provide a list of site identifiers (one per line). The tool will push fake history entries using these items randomly. By default it will go through the list once (no repeats within that run). Use "Cycles" to repeat the whole randomized set multiple times.</p>
+  <div class="modal" role="document">
+    <h2>History Flood Tool — urls.txt or Manual</h2>
+    <p>Load urls.txt or paste URLs (one per line). When the tool pushes entries for external URLs it will add ?u=(encoded-url) to the pushed path and attempt to copy that site's favicon and title (best-effort).</p>
 
-        <label for="sitesList">Sites (one per line). These are used to build unique history paths — they don't navigate away from this page:</label>
-        <textarea id="sitesList" placeholder="example.com
-example.org/page
-youtube.com/watch?v=abc"></textarea>
-
-        <div class="controls-row" style="margin-top:10px;">
-            <div style="display:flex;gap:8px;align-items:center;">
-                <label class="small" for="cycles">Cycles</label>
-                <input id="cycles" type="number" min="1" value="1" style="width:80px" />
-            </div>
-
-            <div style="display:flex;gap:8px;align-items:center;">
-                <label class="small" for="capPerCycle">Max pushes per cycle (optional)</label>
-                <input id="capPerCycle" type="number" min="1" placeholder="leave blank = all" style="width:110px" />
-            </div>
-
-            <div style="display:flex;gap:8px;align-items:center;">
-                <label class="small" for="useFullPath">Use as path or hash?</label>
-                <select id="useFullPath">
-                    <option value="path">/flood/[site]</option>
-                    <option value="hash">#/flood/[site]</option>
-                </select>
-            </div>
+    <div class="row">
+      <div class="col" style="flex:1;">
+        <label for="sitesList">Sites (one per line) — you can also load from urls.txt</label>
+        <textarea id="sitesList" placeholder="https://example.com/page
+https://another.example/path"></textarea>
+        <div class="controls">
+          <button id="loadUrlsBtn" class="btn">Load from urls.txt</button>
+          <button id="clearListBtn" class="btn secondary">Clear list</button>
+          <span id="loadedCount" class="small" style="align-self:center;">No file loaded</span>
         </div>
 
-        <div class="controls-row" style="margin-top:14px;">
-            <button class="btn" id="startFloodBtn">Start Flood</button>
-            <button class="btn secondary" id="closeModalBtn">Cancel</button>
+        <div class="row" style="margin-top:10px;">
+          <div class="col" style="flex:0 0 160px;">
+            <label class="small" for="cycles">Cycles</label>
+            <input id="cycles" type="number" min="1" value="1" />
+          </div>
+          <div class="col" style="flex:0 0 200px;">
+            <label class="small" for="capPerCycle">Max pushes per cycle (optional)</label>
+            <input id="capPerCycle" type="number" min="1" placeholder="leave blank = all" />
+          </div>
+          <div class="col" style="flex:0 0 160px;">
+            <label class="small" for="useFullPath">Push type</label>
+            <select id="useFullPath">
+              <option value="path">/flood/?u=[url]</option>
+              <option value="hash">#/flood/?u=[url]</option>
+            </select>
+          </div>
         </div>
 
-        <p class="small" style="margin-top:12px; text-align:center;">
-            Shortcut to open: Ctrl + Alt + Shift + Z
+        <div class="controls" style="margin-top:12px;">
+          <button id="startFloodBtn" class="btn">Start Flood (from list)</button>
+          <button id="previewBtn" class="btn secondary">Preview first 5 entries</button>
+        </div>
+      </div>
+
+      <div style="width:18px;"></div>
+
+      <div class="col" style="flex:0 0 260px;">
+        <label class="small" for="manualCount">Manual Count (old method)</label>
+        <input id="manualCount" type="number" min="1" placeholder="Enter number of pushes" />
+        <div class="controls" style="margin-top:8px;">
+          <button id="startManualBtn" class="btn">Flood Current Page N times</button>
+          <button id="startManualWithPathBtn" class="btn secondary">Flood with numeric paths</button>
+        </div>
+
+        <p class="small" style="margin-top:10px;">
+          Manual Count behavior:
+          - "Flood Current Page N times" pushes N entries with the current URL as the final entry.
+          - "Flood with numeric paths" pushes /1, /2, ... then leaves the last pushed state.
         </p>
+      </div>
     </div>
+
+    <div style="margin-top:12px; text-align:center;">
+      <button id="closeModalBtn" class="btn secondary">Close</button>
+    </div>
+  </div>
 </div>
 
 <script>
-    // Konami code logic (kept)
-    (function() {
-        const konamiCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65];
-        let inputKeys = [];
-        document.addEventListener("keydown", function(event) {
-            inputKeys.push(event.keyCode);
-            if (inputKeys.toString().indexOf(konamiCode.toString()) > -1) {
-                document.getElementById("tools-section").style.display = "block";
-                inputKeys = [];
-            }
-        });
-    })();
+  // Version fetch
+  (function fetchVersion(){
+    fetch('/version.txt?nocache=' + Date.now())
+      .then(r => r.text())
+      .then(t => { document.getElementById('siteVersion').textContent = t.trim(); })
+      .catch(() => { document.getElementById('siteVersion').textContent = 'Unavailable'; });
+  })();
 
-    // Load version text
-    async function fetchVersion() {
-        try {
-            const response = await fetch("/version.txt?nocache=" + new Date().getTime());
-            const versionText = await response.text();
-            document.getElementById("siteVersion").textContent = versionText.trim();
-        } catch (error) {
-            document.getElementById("siteVersion").textContent = "Unavailable";
-        }
+  // Modal handling & shortcut
+  (function() {
+    const overlay = document.getElementById('historyModalOverlay');
+    const openBtn = document.getElementById('openToolsBtn');
+    const closeBtn = document.getElementById('closeModalBtn');
+
+    function openModal() {
+      overlay.style.display = 'flex';
+      overlay.setAttribute('aria-hidden', 'false');
+      document.getElementById('sitesList').focus();
     }
-    window.onload = fetchVersion;
+    function closeModal() {
+      overlay.style.display = 'none';
+      overlay.setAttribute('aria-hidden', 'true');
+    }
 
-    // History modal controls and randomized no-repeat shuffle logic
-    (function() {
-        const overlay = document.getElementById('historyModalOverlay');
-        const sitesTextarea = document.getElementById('sitesList');
-        const cyclesInput = document.getElementById('cycles');
-        const capPerCycleInput = document.getElementById('capPerCycle');
-        const useFullPathSelect = document.getElementById('useFullPath');
-        const startBtn = document.getElementById('startFloodBtn');
-        const closeModalBtn = document.getElementById('closeModalBtn');
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', function(e){ if (e.target === overlay) closeModal(); });
 
-        function openHistoryModal() {
-            overlay.style.display = 'flex';
-            overlay.setAttribute('aria-hidden', 'false');
-            sitesTextarea.focus();
+    document.addEventListener('keydown', function(e){
+      if (e.ctrlKey && e.altKey && e.shiftKey && (e.key === 'Z' || e.key === 'z')) {
+        e.preventDefault();
+        if (overlay.style.display === 'flex') closeModal(); else openModal();
+      }
+      if (e.key === 'Escape' && overlay.style.display === 'flex') closeModal();
+    });
+  })();
+
+  // Main flood logic with favicon/title copying
+  (function() {
+    const loadBtn = document.getElementById('loadUrlsBtn');
+    const clearBtn = document.getElementById('clearListBtn');
+    const sitesTextarea = document.getElementById('sitesList');
+    const loadedCountEl = document.getElementById('loadedCount');
+    const startFloodBtn = document.getElementById('startFloodBtn');
+    const previewBtn = document.getElementById('previewBtn');
+    const cyclesInput = document.getElementById('cycles');
+    const capPerCycleInput = document.getElementById('capPerCycle');
+    const useFullPathSelect = document.getElementById('useFullPath');
+
+    const manualCountInput = document.getElementById('manualCount');
+    const startManualBtn = document.getElementById('startManualBtn');
+    const startManualWithPathBtn = document.getElementById('startManualWithPathBtn');
+
+    const SAFETY_CAP = 5000;
+
+    loadBtn.addEventListener('click', async function() {
+      loadedCountEl.textContent = 'Loading...';
+      try {
+        const res = await fetch('/urls.txt?nocache=' + Date.now());
+        if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+        const text = await res.text();
+        const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+        const unique = Array.from(new Set(lines));
+        sitesTextarea.value = unique.join('\n');
+        loadedCountEl.textContent = unique.length + ' lines loaded from urls.txt';
+      } catch (err) {
+        console.error(err);
+        loadedCountEl.textContent = 'Failed to load urls.txt';
+        alert('Could not load urls.txt. Make sure the file exists at the site root and is accessible.');
+      }
+    });
+
+    clearBtn.addEventListener('click', function() {
+      sitesTextarea.value = '';
+      loadedCountEl.textContent = 'List cleared';
+    });
+
+    function parseSites(text) {
+      const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+      const seen = new Set();
+      const out = [];
+      for (const l of lines) {
+        if (!seen.has(l)) { seen.add(l); out.push(l); }
+      }
+      return out;
+    }
+
+    function shuffle(arr) {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function ensureFullUrl(u) {
+      try {
+        // If scheme is present, new URL will work
+        return new URL(u).toString();
+      } catch (e) {
+        // Try https fallback
+        try {
+          return new URL('https://' + u).toString();
+        } catch (e2) {
+          return null;
         }
-        function closeHistoryModal() {
-            overlay.style.display = 'none';
-            overlay.setAttribute('aria-hidden', 'true');
+      }
+    }
+
+    function buildHistoryPathForUrl(targetUrl, cycleIndex, itemIndex, useHash) {
+      const enc = encodeURIComponent(targetUrl);
+      const suffix = '?u=' + enc + '&c=' + cycleIndex + '&i=' + itemIndex;
+      if (useHash) {
+        return '#/flood/' + encodeURIComponent(targetUrl) + '/' + cycleIndex + '-' + itemIndex;
+      } else {
+        return '/flood/' + suffix;
+      }
+    }
+
+    function setDocumentFavicon(href) {
+      if (!href) return;
+      let link = document.querySelector('link[rel="icon"]');
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = href;
+      // also set shortcut icon
+      let sc = document.querySelector('link[rel="shortcut icon"]');
+      if (!sc) {
+        sc = document.createElement('link');
+        sc.rel = 'shortcut icon';
+        document.head.appendChild(sc);
+      }
+      sc.href = href;
+    }
+
+    // Attempt to fetch the page and parse <title> and <link rel="icon"> (best-effort, may fail due to CORS)
+    async function fetchTitleAndIcon(targetUrl) {
+      const result = { title: null, icon: null };
+      let parsed;
+      try {
+        parsed = new URL(targetUrl);
+      } catch (e) {
+        return result;
+      }
+
+      // Try fetch page HTML (may be blocked)
+      try {
+        const resp = await fetch(targetUrl, { mode: 'cors', credentials: 'omit' });
+        if (resp && resp.ok) {
+          const text = await resp.text();
+          // parse title
+          const titleMatch = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+          if (titleMatch) {
+            result.title = titleMatch[1].trim();
+          }
+          // parse icon link href
+          const iconMatch = text.match(/<link[^>]+rel=["']?(?:shortcut icon|icon|apple-touch-icon)["']?[^>]*href=["']([^"']+)["']/i);
+          if (iconMatch && iconMatch[1]) {
+            try {
+              result.icon = new URL(iconMatch[1], parsed.origin).toString();
+            } catch (e2) {
+              result.icon = iconMatch[1];
+            }
+          } else {
+            // fallback to common locations
+            result.icon = parsed.origin + '/favicon.ico';
+          }
+          return result;
         }
+      } catch (e) {
+        // fetch failed, move to fallback
+        console.warn('Could not fetch target HTML (likely CORS):', e);
+      }
 
-        // Fisher-Yates shuffle
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
+      // Fallback: use hostname and google favicon API
+      const hostname = parsed.hostname;
+      result.title = hostname;
+      // Use Google favicon service (small but reliable)
+      result.icon = 'https://www.google.com/s2/favicons?domain=' + encodeURIComponent(hostname) + '&sz=64';
+      return result;
+    }
+
+    async function pushHistoryFromList(sites, cycles, capPerCycle, useHash) {
+      const perCycle = capPerCycle && capPerCycle > 0 ? Math.min(capPerCycle, sites.length) : sites.length;
+      const total = perCycle * cycles;
+      if (total > SAFETY_CAP) {
+        if (!confirm('You are about to push ' + total + ' history entries. This may affect browser performance. Continue?')) {
+          return false;
         }
+      }
 
-        function buildPathFor(site, cycleIndex, itemIndex, useHash) {
-            // Create a reasonably safe path fragment using encodeURIComponent
-            const safe = encodeURIComponent(site).replace(/%20/g, '+');
-            if (useHash) {
-                return '#/flood/' + safe + '/' + cycleIndex + '-' + itemIndex;
-            } else {
-                return '/flood/' + safe + '/' + cycleIndex + '-' + itemIndex;
-            }
+      let pushed = 0;
+      for (let c = 1; c <= cycles; c++) {
+        const shuffled = shuffle(sites.slice());
+        const limit = Math.min(perCycle, shuffled.length);
+
+        for (let i = 0; i < limit; i++) {
+          const raw = shuffled[i];
+          const full = ensureFullUrl(raw);
+          const targetUrl = full || raw;
+
+          // build history path using ?u=encodedUrl when not using hash mode
+          const historyPath = buildHistoryPathForUrl(targetUrl, c, i + 1, useHash);
+
+          // Best-effort: obtain title & icon, set document's title & favicon, then push state with title
+          try {
+            const info = await fetchTitleAndIcon(targetUrl);
+            if (info.icon) setDocumentFavicon(info.icon);
+            if (info.title) document.title = info.title;
+
+            // A tiny pause helps ensure the browser registers title/favicon change before pushState
+            await new Promise(res => setTimeout(res, 60));
+
+            // pushState: some browsers ignore the title param, but it's included for completeness
+            history.pushState({}, info.title || document.title, historyPath);
+            pushed++;
+          } catch (e) {
+            console.error('Failed during push for', targetUrl, e);
+            alert('Stopping: an error occurred while pushing history entries. See console for details.');
+            return false;
+          }
+
+          // safety micro-yield so UI stays responsive when many entries
+          if (pushed % 50 === 0) await new Promise(res => setTimeout(res, 40));
         }
+      }
 
-        function validateAndParseSites(text) {
-            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-            // deduplicate identical lines while preserving order
-            const seen = new Set();
-            const unique = [];
-            for (const l of lines) {
-                if (!seen.has(l)) {
-                    seen.add(l);
-                    unique.push(l);
-                }
-            }
-            return unique;
+      alert('History flood complete: ' + pushed + ' entries pushed.');
+      return true;
+    }
+
+    // Manual numeric flood methods
+    function floodManualCount(n, numericPaths) {
+      n = Math.floor(n);
+      if (!n || n < 1) { alert('Enter a positive integer'); return false; }
+      if (n > SAFETY_CAP) {
+        if (!confirm('You are about to push ' + n + ' entries. This may affect browser performance. Continue?')) return false;
+      }
+
+      const originalUrl = window.location.href;
+      try {
+        for (let i = 1; i <= n; i++) {
+          if (numericPaths) {
+            // push /1, /2, ...
+            history.pushState({}, '/' + i.toString(), '/' + i.toString());
+          } else {
+            // push numbered short state, final iteration restore original URL
+            history.pushState({}, i === n ? originalUrl : i.toString(), i === n ? originalUrl : i.toString());
+          }
         }
+        alert('Manual flood completed: ' + n + ' entries pushed.');
+        return true;
+      } catch (e) {
+        console.error('Manual flood failed:', e);
+        alert('Failed during pushState: ' + e);
+        return false;
+      }
+    }
 
-        function pushHistoryEntriesForList(sites, cycles, capPerCycle, useHash) {
-            // total pushes calculation
-            const perCycle = capPerCycle && capPerCycle > 0 ? Math.min(capPerCycle, sites.length) : sites.length;
-            const total = perCycle * cycles;
-            const SAFETY_CAP = 5000;
-            if (total > SAFETY_CAP) {
-                if (!confirm("You are about to push " + total + " history entries. This may affect browser performance. Continue?")) {
-                    return false;
-                }
-            }
+    startFloodBtn.addEventListener('click', async function() {
+      const sites = parseSites(sitesTextarea.value);
+      if (!sites.length) { alert('Please enter or load at least one site in the list.'); return; }
+      let cycles = parseInt(cyclesInput.value, 10);
+      if (!cycles || cycles < 1) cycles = 1;
+      let cap = parseInt(capPerCycleInput.value, 10);
+      if (isNaN(cap) || cap < 1) cap = null;
+      const useHash = (useFullPathSelect.value === 'hash');
 
-            let pushCount = 0;
-            for (let c = 1; c <= cycles; c++) {
-                // shuffle a copy for this cycle to ensure no repeats within a cycle
-                const shuffled = shuffleArray(sites.slice());
-                const limit = capPerCycle && capPerCycle > 0 ? Math.min(capPerCycle, shuffled.length) : shuffled.length;
+      // Run flood (async)
+      await pushHistoryFromList(sites, cycles, cap, useHash);
+    });
 
-                for (let i = 0; i < limit; i++) {
-                    const site = shuffled[i];
-                    const path = buildPathFor(site, c, i+1, useHash);
-                    try {
-                        // When using hash, modify location.hash; otherwise pushState
-                        if (useHash) {
-                            // Use replace first to avoid interfering with future pages, then push small state
-                            location.hash = path;
-                            history.pushState({}, '', path);
-                        } else {
-                            history.pushState({}, '', path);
-                        }
-                    } catch (e) {
-                        console.error("push failed on iteration", c, i, e);
-                        // stop if pushState is failing repeatedly
-                        return false;
-                    }
-                    pushCount++;
-                }
-            }
+    previewBtn.addEventListener('click', function() {
+      const sites = parseSites(sitesTextarea.value);
+      if (!sites.length) { alert('Please enter or load at least one site in the list to preview.'); return; }
+      const useHash = (useFullPathSelect.value === 'hash');
+      const shuffled = shuffle(sites.slice());
+      const preview = shuffled.slice(0, 5).map((s, idx) => {
+        const full = ensureFullUrl(s) || s;
+        return (useHash ? '#/flood/?u=' : '/flood/?u=') + encodeURIComponent(full);
+      });
+      alert('Preview (first 5 entries):\n' + preview.join('\n'));
+    });
 
-            alert("History flood complete: " + pushCount + " entries pushed.");
-            return true;
-        }
-
-        startBtn.addEventListener('click', function() {
-            const raw = sitesTextarea.value;
-            const sites = validateAndParseSites(raw);
-            if (!sites.length) {
-                alert("Please enter at least one site or identifier in the list.");
-                return;
-            }
-
-            let cycles = parseInt(cyclesInput.value, 10);
-            if (!cycles || cycles < 1) cycles = 1;
-
-            let capPerCycle = parseInt(capPerCycleInput.value, 10);
-            if (isNaN(capPerCycle) || capPerCycle < 1) capPerCycle = null;
-
-            const useHash = useFullPathSelect.value === 'hash';
-
-            // Run the push sequence (synchronous and fast). Close modal after start.
-            const ok = pushHistoryEntriesForList(sites, cycles, capPerCycle, useHash);
-            if (ok) closeHistoryModal();
-        });
-
-        closeModalBtn.addEventListener('click', closeHistoryModal);
-
-        overlay.addEventListener('click', function(e) {
-            if (e.target === overlay) closeHistoryModal();
-        });
-
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                if (overlay.style.display === 'flex') closeHistoryModal();
-            }
-            // Shortcut: Ctrl + Alt + Shift + Z opens the popup
-            if (e.ctrlKey && e.altKey && e.shiftKey && (e.key === 'Z' || e.key === 'z')) {
-                e.preventDefault();
-                if (overlay.style.display === 'flex') {
-                    closeHistoryModal();
-                } else {
-                    openHistoryModal();
-                }
-            }
-        });
-
-        // Expose for quick access (optional)
-        window.openHistoryModal = openHistoryModal;
-        window.closeHistoryModal = closeHistoryModal;
-    })();
+    // Manual handlers
+    startManualBtn.addEventListener('click', function() {
+      const n = parseInt(manualCountInput.value, 10);
+      if (!n || n < 1) { alert('Enter a positive integer'); return; }
+      floodManualCount(n, false);
+    });
+    startManualWithPathBtn.addEventListener('click', function() {
+      const n = parseInt(manualCountInput.value, 10);
+      if (!n || n < 1) { alert('Enter a positive integer'); return; }
+      floodManualCount(n, true);
+    });
+  })();
 </script>
-
-<!-- Botpress Webchat Injected at the End (kept as in original) -->
-<script src="https://cdn.botpress.cloud/webchat/v2.4/inject.js"></script>
-<script src="https://files.bpcontent.cloud/2025/05/05/15/20250505153238-7V8LNUEO.js"></script>
 
 </body>
 </html>
