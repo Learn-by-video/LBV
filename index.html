@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>L.B.V. - Main Page</title>
 
     <!-- SEO Meta Tags -->
@@ -31,6 +31,7 @@
             background-color: #003366;
             color: white;
             text-align: center;
+            height: 100%;
         }
         header, footer {
             background: #003366;
@@ -89,33 +90,79 @@
             font-size: 1em;
             opacity: 0.7;
         }
-    </style>
 
-    <script>
-        let konamiCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Up, Up, Down, Down, Left, Right, Left, Right, B, A
-        let inputKeys = [];
-
-        document.addEventListener("keydown", function(event) {
-            inputKeys.push(event.keyCode);
-
-            if (inputKeys.toString().indexOf(konamiCode.toString()) > -1) {
-                document.getElementById("tools-section").style.display = "block"; // Show tools section
-                inputKeys = []; // Reset input keys
-            }
-        });
-
-        async function fetchVersion() {
-            try {
-                const response = await fetch("/version.txt?nocache=" + new Date().getTime());
-                const versionText = await response.text();
-                document.getElementById("siteVersion").textContent = versionText.trim();
-            } catch (error) {
-                document.getElementById("siteVersion").textContent = "Unavailable";
-            }
+        /* Modal (popup) styles */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 20px;
+        }
+        .modal {
+            background: #111;
+            color: #fff;
+            border-radius: 12px;
+            padding: 28px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+        .modal h2 {
+            margin: 0 0 12px 0;
+            font-size: 22px;
+        }
+        .modal p {
+            margin: 0 0 16px 0;
+            color: #ddd;
+        }
+        .modal .controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .modal input[type="number"] {
+            width: 140px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            text-align: center;
+        }
+        .btn {
+            background: #00f2ea;
+            color: #000;
+            padding: 12px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 0 12px rgba(0,255,255,0.3);
+        }
+        .btn:hover {
+            box-shadow: 0 0 22px rgba(0,255,255,0.6);
+            transform: translateY(-1px);
+        }
+        .btn.secondary {
+            background: #333;
+            color: #fff;
+            box-shadow: none;
+            border: 1px solid #444;
         }
 
-        window.onload = fetchVersion;
-    </script>
+        @media (max-width: 480px) {
+            .modal { padding: 18px; }
+            .modal input[type="number"] { width: 100%; max-width: 240px; }
+        }
+    </style>
 </head>
 <body>
 
@@ -147,9 +194,147 @@
     Site Version: <span id="siteVersion">Loading...</span>
 </div>
 
+<!-- History Flood Modal (hidden by default) -->
+<div id="historyModalOverlay" class="modal-overlay" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal" role="document">
+        <h2>History Flood Tool</h2>
+        <p>Enter how many times to repeat this page in history (enter a positive number).</p>
+        <div class="controls">
+            <input id="historyAmount" type="number" min="1" placeholder="e.g. 20" />
+        </div>
+        <div class="controls" style="margin-top:16px;">
+            <button class="btn" id="floodBtn">Flood History</button>
+            <button class="btn secondary" id="closeModalBtn">Cancel</button>
+        </div>
+        <p style="margin-top:12px; font-size:12px; color:#888;">
+            Shortcut: Ctrl + Alt + Shift + Z
+        </p>
+    </div>
+</div>
+
 <!-- Botpress Webchat Injected at the End -->
 <script src="https://cdn.botpress.cloud/webchat/v2.4/inject.js"></script>
 <script src="https://files.bpcontent.cloud/2025/05/05/15/20250505153238-7V8LNUEO.js"></script>
+
+<script>
+    // Konami code logic (kept from original)
+    (function() {
+        const konamiCode = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // Up, Up, Down, Down, Left, Right, Left, Right, B, A
+        let inputKeys = [];
+
+        document.addEventListener("keydown", function(event) {
+            inputKeys.push(event.keyCode);
+            if (inputKeys.toString().indexOf(konamiCode.toString()) > -1) {
+                document.getElementById("tools-section").style.display = "block"; // Show tools section
+                inputKeys = [];
+            }
+        });
+    })();
+
+    // Load version text
+    async function fetchVersion() {
+        try {
+            const response = await fetch("/version.txt?nocache=" + new Date().getTime());
+            const versionText = await response.text();
+            document.getElementById("siteVersion").textContent = versionText.trim();
+        } catch (error) {
+            document.getElementById("siteVersion").textContent = "Unavailable";
+        }
+    }
+    window.onload = fetchVersion;
+
+    // Modal controls for History Flood popup
+    (function() {
+        const overlay = document.getElementById('historyModalOverlay');
+        const amountInput = document.getElementById('historyAmount');
+        const floodBtn = document.getElementById('floodBtn');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+
+        function openHistoryModal() {
+            amountInput.value = '';
+            overlay.style.display = 'flex';
+            overlay.setAttribute('aria-hidden', 'false');
+            amountInput.focus();
+        }
+
+        function closeHistoryModal() {
+            overlay.style.display = 'none';
+            overlay.setAttribute('aria-hidden', 'true');
+        }
+
+        function floodHistory(num) {
+            // Validate
+            const count = parseInt(num, 10);
+            if (!count || count <= 0) {
+                alert("Please enter a valid positive number.");
+                return;
+            }
+
+            // A safety cap to prevent accidental huge loops; increase if you understand the risk.
+            const CAP = 5000;
+            if (count > CAP) {
+                if (!confirm("You entered " + count + ". This may impact browser performance. Continue?")) {
+                    return;
+                }
+            }
+
+            const url = window.location.href;
+            for (let i = 1; i <= count; i++) {
+                // Use a simple state object. Some browsers limit history length but this pushes states as requested.
+                try {
+                    history.pushState({}, '', i === count ? url : i.toString());
+                } catch (e) {
+                    // If pushState fails for any reason, break to avoid infinite exceptions.
+                    console.error("pushState failed at iteration", i, e);
+                    break;
+                }
+            }
+
+            alert(
+                "History flood successful! " +
+                window.location.href +
+                " now appears in your history " +
+                count +
+                (count === 1 ? " time." : " times.")
+            );
+        }
+
+        // Button handlers
+        floodBtn.addEventListener('click', function() {
+            floodHistory(amountInput.value || prompt('History flood amount: '));
+            closeHistoryModal();
+        });
+        closeModalBtn.addEventListener('click', closeHistoryModal);
+
+        // Close on overlay click (but not when clicking inside modal)
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) closeHistoryModal();
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (overlay.style.display === 'flex') {
+                    closeHistoryModal();
+                }
+            }
+        });
+
+        // Shortcut: Ctrl + Alt + Shift + Z opens the popup
+        document.addEventListener('keydown', function(e) {
+            // Check modifier keys and key "Z"/"z"
+            if (e.ctrlKey && e.altKey && e.shiftKey && (e.key === 'Z' || e.key === 'z')) {
+                e.preventDefault();
+                openHistoryModal();
+            }
+        });
+
+        // Expose for debugging if needed (not required)
+        window.openHistoryModal = openHistoryModal;
+        window.closeHistoryModal = closeHistoryModal;
+        window.floodHistory = floodHistory;
+    })();
+</script>
 
 </body>
 </html>
