@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BLE Sender</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#0b1220;color:#e5e7eb;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+    .card{max-width:820px;width:100%;background:#111827;border:1px solid #243244;border-radius:16px;padding:18px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+    h1{margin:0 0 6px;font-size:18px}
+    .muted{color:#9ca3af;font-size:13px;margin:0 0 14px;line-height:1.4}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+    input,select,textarea,button{
+      border-radius:12px;border:1px solid #243244;background:#0b1220;color:#e5e7eb;
+      padding:10px 12px;font-size:14px
+    }
+    input,select{flex:1;min-width:220px}
+    textarea{width:100%;min-height:110px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+    button{cursor:pointer;font-weight:700}
+    button.primary{background:#4f46e5;border-color:#4f46e5}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .status{padding:10px 12px;border-radius:12px;background:#0b1220;border:1px solid #243244}
+    .log{margin-top:10px;max-height:240px;overflow:auto;padding:10px 12px;border-radius:12px;background:#0b1220;border:1px solid #243244;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+    .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#22c55e;color:#052e16;font-weight:900;font-size:12px;margin-left:8px}
+    .pill.off{background:#ef4444;color:#450a0a}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔵 BLE Sender <span id="pill" class="pill off">DISCONNECTED</span></h1>
+    <div class="muted">
+      Connect to a BLE device and send bytes to a writable GATT characteristic. Works on HTTPS or localhost only. :contentReference[oaicite:4]{index=4}
+    </div>
+
+    <div class="row">
+      <input id="serviceUuid" value="0000ffe0-0000-1000-8000-00805f9b34fb" placeholder="Service UUID (e.g. 0000ffe0-...)" />
+      <input id="charUuid" value="0000ffe1-0000-1000-8000-00805f9b34fb" placeholder="Characteristic UUID (e.g. 0000ffe1-...)" />
+    </div>
+
+    <div class="row">
+      <button id="btnConnect" class="primary">Connect</button>
+      <button id="btnDisconnect" disabled>Disconnect</button>
+      <button id="btnRefresh" disabled>Refresh services</button>
+    </div>
+
+    <div class="row">
+      <select id="serviceSelect" disabled>
+        <option value="">Service (auto / select after refresh)</option>
+      </select>
+      <select id="charSelect" disabled>
+        <option value="">Characteristic (auto / select after refresh)</option>
+      </select>
+    </div>
+
+    <div class="row">
+      <select id="mode">
+        <option value="text">Send as UTF-8 text</option>
+        <option value="hex">Send as HEX bytes (e.g. DE AD BE EF)</option>
+      </select>
+      <button id="btnSend" class="primary" disabled>Send</button>
+    </div>
+
+    <textarea id="payload" placeholder="Type your message here…">hello</textarea>
+
+    <div class="status" id="status">Status: idle</div>
+    <div class="log" id="log"></div>
+  </div>
+
+<script>
+  // Web Bluetooth basics:
+  // - requestDevice() shows a chooser and returns a BluetoothDevice :contentReference[oaicite:5]{index=5}
+  // - characteristic.writeValue() sends bytes to the device :contentReference[oaicite:6]{index=6}
+  // - Browser acts as "central" connecting to remote GATT server :contentReference[oaicite:7]{index=7}
+
+  const $ = (id) => document.getElementById(id);
+  const logEl = $("log");
+  const statusEl = $("status");
+  const pillEl = $("pill");
+
+  let device = null;
+  let server = null;
+  let activeService = null;
+  let activeChar = null;
+
+  function log(msg) {
+    const t = new Date().toLocaleTimeString();
+    const div = document.createElement("div");
+    div.textContent = `[${t}] ${msg}`;
+    logEl.appendChild(div);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function setStatus(s) { statusEl.textContent = `Status: ${s}`; }
+
+  function setConnected(yes) {
+    pillEl.textContent = yes ? "CONNECTED" : "DISCONNECTED";
+    pillEl.className = yes ? "pill" : "pill off";
+    $("btnConnect").disabled = yes;
+    $("btnDisconnect").disabled = !yes;
+    $("btnRefresh").disabled = !yes;
+    $("btnSend").disabled = !yes || !activeChar;
+    $("serviceSelect").disabled = !yes;
+    $("charSelect").disabled = !yes;
+  }
+
+  function normalizeUuid(u) { return (u || "").trim().toLowerCase(); }
+
+  function hexToBytes(hex) {
+    const clean = hex.replace(/0x/gi, "").replace(/[^0-9a-f]/gi, "");
+    if (clean.length % 2 !== 0) throw new Error("HEX must have an even number of digits.");
+    const out = new Uint8Array(clean.length / 2);
+    for (let i = 0; i < clean.length; i += 2) {
+      out[i/2] = parseInt(clean.slice(i, i+2), 16);
+    }
+    return out;
+  }
+
+  async function connect() {
+    if (!navigator.bluetooth) {
+      alert("Web Bluetooth not supported in this browser.");
+      return;
+    }
+
+    const svcUuid = normalizeUuid($("serviceUuid").value);
+    const chrUuid = normalizeUuid($("charUuid").value);
+
+    if (!svcUuid || !chrUuid) {
+      alert("Enter a Service UUID and Characteristic UUID.");
+      return;
+    }
+
+    setStatus("opening chooser…");
+    log("Requesting device…");
+
+    // acceptAllDevices lets you pick any device, but you must declare optionalServices
+    // to access them after connecting.
+    device = await navigator.bluetooth.requestDevice({
+      acceptAllDevices: true,
+      optionalServices: [svcUuid]
+    });
+
+    device.addEventListener("gattserverdisconnected", () => {
+      log("Device disconnected.");
+      device = null; server = null; activeService = null; activeChar = null;
+      clearSelects();
+      setConnected(false);
+      setStatus("disconnected");
+    });
+
+    setStatus("connecting…");
+    server = await device.gatt.connect();
+    log(`Connected to: ${device.name || "(unnamed device)"}`);
+
+    // Auto-pick service + characteristic by UUID
+    activeService = await server.getPrimaryService(svcUuid);
+    activeChar = await activeService.getCharacteristic(chrUuid);
+
+    log(`Using service: ${svcUuid}`);
+    log(`Using characteristic: ${chrUuid}`);
+
+    setConnected(true);
+    setStatus("ready");
+    $("btnSend").disabled = false;
+  }
+
+  function clearSelects() {
+    $("serviceSelect").innerHTML = `<option value="">Service (auto / select after refresh)</option>`;
+    $("charSelect").innerHTML = `<option value="">Characteristic (auto / select after refresh)</option>`;
+  }
+
+  async function refreshServices() {
+    if (!server) return;
+
+    setStatus("reading services…");
+    clearSelects();
+
+    // Only services declared in optionalServices are accessible.
+    // We at least have the one you provided.
+    const svcUuid = normalizeUuid($("serviceUuid").value);
+    const chrUuid = normalizeUuid($("charUuid").value);
+
+    const serviceSelect = $("serviceSelect");
+    const charSelect = $("charSelect");
+
+    // Add the configured service as selectable
+    serviceSelect.innerHTML += `<option value="${svcUuid}">${svcUuid}</option>`;
+    serviceSelect.value = svcUuid;
+
+    // Read characteristics of that service
+    const svc = await server.getPrimaryService(svcUuid);
+    const chars = await svc.getCharacteristics();
+
+    charSelect.innerHTML = `<option value="">Characteristic (choose)</option>`;
+    for (const c of chars) {
+      const props = Object.entries(c.properties).filter(([,v]) => v).map(([k]) => k).join(",");
+      charSelect.innerHTML += `<option value="${c.uuid}">${c.uuid} (${props})</option>`;
+    }
+
+    // Auto-select the configured characteristic if present
+    const found = chars.find(c => c.uuid.toLowerCase() === chrUuid);
+    if (found) {
+      charSelect.value = found.uuid;
+      activeService = svc;
+      activeChar = found;
+      $("btnSend").disabled = false;
+      log("Refreshed and selected configured characteristic.");
+    } else {
+      activeService = svc;
+      activeChar = null;
+      $("btnSend").disabled = true;
+      log("Refreshed. Pick a writable characteristic from the dropdown.");
+    }
+
+    setStatus("ready");
+  }
+
+  async function onServiceChange() {
+    if (!server) return;
+    const svcUuid = $("serviceSelect").value;
+    if (!svcUuid) return;
+
+    // Note: if you select a service not in optionalServices, this will fail.
+    try {
+      activeService = await server.getPrimaryService(svcUuid);
+      const chars = await activeService.getCharacteristics();
+      const charSelect = $("charSelect");
+      charSelect.innerHTML = `<option value="">Characteristic (choose)</option>`;
+      for (const c of chars) {
+        const props = Object.entries(c.properties).filter(([,v]) => v).map(([k]) => k).join(",");
+        charSelect.innerHTML += `<option value="${c.uuid}">${c.uuid} (${props})</option>`;
+      }
+      activeChar = null;
+      $("btnSend").disabled = true;
+      log(`Selected service: ${svcUuid}`);
+    } catch (e) {
+      log("Service change failed: " + e.message);
+      alert("That service isn't accessible. Add it to optionalServices (code) or use the UUID fields above.");
+    }
+  }
+
+  function onCharChange() {
+    const uuid = $("charSelect").value;
+    if (!uuid) {
+      activeChar = null;
+      $("btnSend").disabled = true;
+      return;
+    }
+    // We already have the characteristic objects listed; easiest is to re-fetch by UUID:
+    activeService.getCharacteristic(uuid).then(c => {
+      activeChar = c;
+      $("btnSend").disabled = false;
+      log(`Selected characteristic: ${uuid}`);
+    }).catch(e => {
+      log("Characteristic select failed: " + e.message);
+      $("btnSend").disabled = true;
+    });
+  }
+
+  async function send() {
+    if (!activeChar) {
+      alert("No characteristic selected.");
+      return;
+    }
+
+    const mode = $("mode").value;
+    const payload = $("payload").value;
+
+    let bytes;
+    try {
+      bytes = (mode === "hex")
+        ? hexToBytes(payload)
+        : new TextEncoder().encode(payload);
+    } catch (e) {
+      alert(e.message);
+      return;
+    }
+
+    setStatus("sending…");
+    log(`Sending ${bytes.length} byte(s)…`);
+
+    // writeValue() sends bytes to the characteristic :contentReference[oaicite:8]{index=8}
+    await activeChar.writeValue(bytes);
+
+    log("Sent.");
+    setStatus("ready");
+  }
+
+  function disconnect() {
+    if (device?.gatt?.connected) device.gatt.disconnect();
+  }
+
+  $("btnConnect").addEventListener("click", () => connect().catch(e => { log("Connect error: " + e.message); setStatus("error"); }));
+  $("btnDisconnect").addEventListener("click", () => disconnect());
+  $("btnRefresh").addEventListener("click", () => refreshServices().catch(e => log("Refresh error: " + e.message)));
+  $("btnSend").addEventListener("click", () => send().catch(e => { log("Send error: " + e.message); setStatus("error"); }));
+
+  $("serviceSelect").addEventListener("change", onServiceChange);
+  $("charSelect").addEventListener("change", onCharChange);
+
+  log("Ready. Enter UUIDs, click Connect, then Send.");
+  setConnected(false);
+</script>
+</body>
+</html>
