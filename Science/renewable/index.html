@@ -1,1 +1,102 @@
-<keep>heeeeeeeeeeee</keep>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>L.B.V. - Science - renewable energy</title>
+
+  <meta name="description" content="L.B.V. - Learn by Video. Explore facts, videos, and games in an interactive educational platform." />
+  <meta name="keywords" content="L.B.V, Learn by Video, educational platform, facts, videos, games, learning" />
+  <meta name="author" content="L.B.V. Team" />
+
+  <link rel="icon" type="image/png" sizes="32x32" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
+  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
+  <meta name="theme-color" content="#003366">
+
+  <style>
+    html, body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #003366;
+      color: white;
+      text-align: center;
+      min-height: 100vh;
+    }
+    header, footer {
+      padding: 20px;
+      background: #003366;
+    }
+    .nav-links { display:flex; gap:12px; justify-content:center; padding:16px; flex-wrap:wrap; }
+    .nav-links a { background:white; color:#003366; padding:12px 18px; border-radius:6px; text-decoration:none; font-weight:bold; }
+    .version-banner { position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 0.95em; opacity: 0.8; }
+
+    /* Modal & controls */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 18px;
+    }
+    .modal {
+      background: #0b0b0b;
+      color: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      max-width: 780px;
+      width: 100%;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+      text-align: left;
+    }
+    .modal h2 { margin: 0 0 8px 0; font-size: 20px; text-align:center; }
+    label { color:#cfd8dc; font-size:13px; display:block; margin-bottom:6px; }
+    textarea { width:100%; min-height:140px; resize:vertical; padding:10px; border-radius:8px; border:none; background:#071017; color:#e6f7f7; font-size:14px; }
+    input[type="number"], input[type="text"], select { padding:8px 10px; border-radius:8px; border:none; background:#071017; color:#e6f7f7; font-size:14px; }
+    .controls { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; align-items:center; }
+    .btn { background: #00f2ea; color: #000; padding:10px 16px; border-radius:10px; border:none; font-weight:700; cursor:pointer; }
+    .btn.secondary { background:#2b2b2b; color:#fff; border:1px solid #444; box-shadow:none; }
+    .small { font-size:12px; color:#9aa7ac; }
+    .row { display:flex; gap:10px; align-items:center; margin-top:8px; flex-wrap:wrap; }
+    .col { display:flex; flex-direction:column; gap:6px; }
+
+    .list-actions { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; align-items:center; }
+
+    @media (max-width:700px) {
+      .modal { padding:14px; }
+      textarea { min-height:110px; }
+      .controls { flex-direction:column; align-items:stretch; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" style="color:white; text-decoration:none; font-size:22px; font-weight:bold;">L.B.V. - Main Page</a>
+</header>
+
+
+
+<footer>
+  <p style="margin:0;">© Learn by Video. All rights reserved.</p>
+</footer>
+
+<div class="version-banner">
+  Site Version: <span id="siteVersion">Loading...</span>
+</div>
+
+<script>
+  // fetch version if available
+  (function fetchVersion(){
+    fetch('/version.txt?nocache=' + Date.now())
+      .then(r => r.text())
+      .then(t => { document.getElementById('siteVersion').textContent = t.trim(); })
+      .catch(() => { document.getElementById('siteVersion').textContent = 'Unavailable'; });
+  })();
+</script>
+
+</body>
+</html>
