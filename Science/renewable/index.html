@@ -10,86 +10,116 @@
   <meta name="author" content="L.B.V. Team" />
 
   <link rel="icon" type="image/png" sizes="32x32" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
-  <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/Learn-by-video/assets/refs/heads/main/Favcon/l-b-v.jpg">
+
   <meta name="theme-color" content="#003366">
 
   <style>
-    html, body {
-      font-family: 'Arial', sans-serif;
+    :root {
+      --primary: #003366;
+      --secondary: #002244;
+      --accent: #00f2ea;
+      --text-light: #e6f7f7;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
       margin: 0;
-      padding: 0;
-      background-color: #003366;
+      font-family: Arial, sans-serif;
+      background: var(--primary);
       color: white;
-      text-align: center;
-      min-height: 100vh;
       line-height: 1.6;
     }
 
+    /* HEADER */
     header {
-      background-color: #002244;
-      padding: 20px 0;
-      color: white;
+      background: var(--secondary);
+      padding: 15px;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
     }
 
     header a {
       color: white;
       text-decoration: none;
-      font-size: 24px;
+      font-size: 22px;
       font-weight: bold;
     }
 
+    /* NAVIGATION */
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    nav a {
+      background: var(--accent);
+      color: var(--primary);
+      padding: 8px 14px;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 14px;
+      transition: 0.3s;
+    }
+
+    nav a:hover {
+      background: white;
+      color: var(--primary);
+    }
+
+    /* MAIN */
     main {
       padding: 40px 20px;
+      max-width: 1000px;
+      margin: auto;
     }
 
     h1 {
-      font-size: 36px;
-      margin-bottom: 20px;
-      color: #00f2ea;
+      text-align: center;
+      color: var(--accent);
+      margin-bottom: 30px;
+    }
+
+    section {
+      background: rgba(255,255,255,0.05);
+      padding: 25px;
+      margin-bottom: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 
     h2 {
-      font-size: 28px;
-      margin-top: 40px;
-      color: #e6f7f7;
+      color: var(--text-light);
+      margin-top: 0;
     }
 
-    section p {
-      font-size: 18px;
-      max-width: 800px;
-      margin: 0 auto 20px auto;
+    p {
+      font-size: 17px;
     }
 
-    .nav-links {
-      display: flex;
-      gap: 16px;
-      justify-content: center;
-      padding: 16px;
-      flex-wrap: wrap;
-      margin-top: 40px;
+    /* FUTURE CONTENT PLACEHOLDERS */
+    .placeholder {
+      border: 2px dashed var(--accent);
+      padding: 20px;
+      margin-top: 15px;
+      border-radius: 8px;
+      opacity: 0.7;
     }
 
-    .nav-links a {
-      background: #00f2ea;
-      color: #003366;
-      padding: 12px 18px;
-      border-radius: 6px;
-      text-decoration: none;
-      font-weight: bold;
-      transition: all 0.3s ease;
-    }
-
-    .nav-links a:hover {
-      background: #003366;
-      color: white;
-    }
-
+    /* FOOTER */
     footer {
-      background-color: #002244;
-      padding: 20px 0;
+      background: var(--secondary);
       text-align: center;
-      color: white;
+      padding: 20px;
       font-size: 14px;
+      margin-top: 40px;
     }
 
     .version-banner {
@@ -97,27 +127,29 @@
       bottom: 10px;
       width: 100%;
       text-align: center;
-      font-size: 0.95em;
+      font-size: 0.9em;
       opacity: 0.8;
       color: #ccc;
     }
 
     .version-banner span {
-      color: #00f2ea;
+      color: var(--accent);
     }
 
+    /* MOBILE */
     @media (max-width: 700px) {
       h1 {
-        font-size: 28px;
+        font-size: 26px;
       }
 
-      h2 {
-        font-size: 24px;
-      }
-
-      .nav-links {
+      nav {
         flex-direction: column;
-        gap: 8px;
+        align-items: center;
+      }
+
+      nav a {
+        width: 80%;
+        text-align: center;
       }
     }
   </style>
@@ -125,50 +157,61 @@
 <body>
 
 <header>
-  <a href="index.html">L.B.V. - Main Page</a>
+  <a href="/">L.B.V. - Main Page</a>
+
+  <nav>
+    <a href="#Introduction">Introduction</a>
+    <a href="#Types">Types</a>
+    <a href="#Impact">Impact</a>
+    <a href="#HowItWorks">How It Works</a>
+    <a href="#Challenges">Challenges</a>
+    <a href="#Conclusion">Conclusion</a>
+  </nav>
 </header>
 
 <main>
   <h1>Renewable Energy: A Sustainable Future</h1>
 
-  <section>
+  <section id="Introduction">
     <h2>Introduction to Renewable Energy</h2>
-    <p>Renewable energy is energy derived from natural sources that are constantly replenished. These include sunlight, wind, rain, tides, waves, geothermal heat, and more. It is the key to a sustainable future, providing a cleaner alternative to fossil fuels.</p>
+    <p><!-- YOU FILL THIS --></p>
   </section>
 
-  <section>
+  <section id="Types">
     <h2>Types of Renewable Energy</h2>
-    <p>There are several types of renewable energy: Solar energy, wind power, hydropower, geothermal energy, and biomass. Each has its own advantages and challenges, contributing in unique ways to the global energy mix.</p>
+    <p><!-- YOU FILL THIS --></p>
   </section>
 
-  <section>
+  <section id="Impact">
     <h2>Impact on the Environment</h2>
-    <p>Renewable energy helps reduce greenhouse gas emissions and mitigates the impacts of climate change. It leads to cleaner air and water, healthier ecosystems, and decreased reliance on finite resources like oil and coal.</p>
+    <p><!-- YOU FILL THIS --></p>
   </section>
 
-  <section>
+  <section id="HowItWorks">
     <h2>How It Works</h2>
-    <p>Solar panels capture sunlight and convert it into electricity. Wind turbines harness the power of the wind. Hydropower uses the flow of water to generate electricity, while geothermal energy taps into heat from within the Earth. These technologies help us shift towards sustainable energy solutions.</p>
+    <p><!-- YOU FILL THIS --></p>
   </section>
 
-  <section>
+  <section id="Challenges">
     <h2>Renewable Energy Challenges</h2>
-    <p>Challenges such as high initial costs, intermittency (e.g., solar energy's reliance on sunlight), and the need for better storage solutions need to be overcome for widespread adoption of renewable energy. However, research and development continue to improve these technologies.</p>
+    <p><!-- YOU FILL THIS --></p>
+  </section>
+
+  <section id="Conclusion">
+    <h2>Conclusion and Future of Renewable Energy</h2>
+    <p><!-- YOU FILL THIS --></p>
+  </section>
+
+  <!-- OPTIONAL FUTURE FEATURES -->
+  <section>
+    <h2>Videos</h2>
+    <div class="placeholder">Add educational videos here</div>
   </section>
 
   <section>
-    <h2>Conclusion and Future of Renewable Energy</h2>
-    <p>The future of renewable energy looks promising, with advancements in technology and global investments growing. The transition to clean energy is essential for mitigating climate change and ensuring a sustainable future for all.</p>
+    <h2>Interactive Games</h2>
+    <div class="placeholder">Add learning games here</div>
   </section>
-
-  <div class="nav-links">
-    <a href="#Introduction">Introduction</a>
-    <a href="#Types">Types of Renewable Energy</a>
-    <a href="#Impact">Impact on the Environment</a>
-    <a href="#HowItWorks">How It Works</a>
-    <a href="#Challenges">Challenges</a>
-    <a href="#Conclusion">Conclusion</a>
-  </div>
 
 </main>
 
