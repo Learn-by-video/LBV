@@ -15,104 +15,165 @@
 
   <style>
     html, body {
-      font-family: Arial, sans-serif;
+      font-family: 'Arial', sans-serif;
       margin: 0;
       padding: 0;
       background-color: #003366;
       color: white;
       text-align: center;
       min-height: 100vh;
+      line-height: 1.6;
     }
-    header, footer {
-      padding: 20px;
-      background: #003366;
-    }
-    .nav-links { display:flex; gap:12px; justify-content:center; padding:16px; flex-wrap:wrap; }
-    .nav-links a { background:white; color:#003366; padding:12px 18px; border-radius:6px; text-decoration:none; font-weight:bold; }
-    .version-banner { position: fixed; bottom: 10px; width: 100%; text-align: center; font-size: 0.95em; opacity: 0.8; }
 
-    /* Modal & controls */
-    .modal-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.65);
-      display: none;
+    header {
+      background-color: #002244;
+      padding: 20px 0;
+      color: white;
+    }
+
+    header a {
+      color: white;
+      text-decoration: none;
+      font-size: 24px;
+      font-weight: bold;
+    }
+
+    main {
+      padding: 40px 20px;
+    }
+
+    h1 {
+      font-size: 36px;
+      margin-bottom: 20px;
+      color: #00f2ea;
+    }
+
+    h2 {
+      font-size: 28px;
+      margin-top: 40px;
+      color: #e6f7f7;
+    }
+
+    section p {
+      font-size: 18px;
+      max-width: 800px;
+      margin: 0 auto 20px auto;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 16px;
       justify-content: center;
-      align-items: center;
-      z-index: 9999;
-      padding: 18px;
+      padding: 16px;
+      flex-wrap: wrap;
+      margin-top: 40px;
     }
-    .modal {
-      background: #0b0b0b;
-      color: #fff;
-      border-radius: 12px;
-      padding: 20px;
-      max-width: 780px;
+
+    .nav-links a {
+      background: #00f2ea;
+      color: #003366;
+      padding: 12px 18px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .nav-links a:hover {
+      background: #003366;
+      color: white;
+    }
+
+    footer {
+      background-color: #002244;
+      padding: 20px 0;
+      text-align: center;
+      color: white;
+      font-size: 14px;
+    }
+
+    .version-banner {
+      position: fixed;
+      bottom: 10px;
       width: 100%;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
-      text-align: left;
+      text-align: center;
+      font-size: 0.95em;
+      opacity: 0.8;
+      color: #ccc;
     }
-    .modal h2 { margin: 0 0 8px 0; font-size: 20px; text-align:center; }
-    label { color:#cfd8dc; font-size:13px; display:block; margin-bottom:6px; }
-    textarea { width:100%; min-height:140px; resize:vertical; padding:10px; border-radius:8px; border:none; background:#071017; color:#e6f7f7; font-size:14px; }
-    input[type="number"], input[type="text"], select { padding:8px 10px; border-radius:8px; border:none; background:#071017; color:#e6f7f7; font-size:14px; }
-    .controls { display:flex; gap:10px; margin-top:12px; flex-wrap:wrap; align-items:center; }
-    .btn { background: #00f2ea; color: #000; padding:10px 16px; border-radius:10px; border:none; font-weight:700; cursor:pointer; }
-    .btn.secondary { background:#2b2b2b; color:#fff; border:1px solid #444; box-shadow:none; }
-    .small { font-size:12px; color:#9aa7ac; }
-    .row { display:flex; gap:10px; align-items:center; margin-top:8px; flex-wrap:wrap; }
-    .col { display:flex; flex-direction:column; gap:6px; }
 
-    .list-actions { display:flex; gap:8px; margin-top:8px; flex-wrap:wrap; align-items:center; }
+    .version-banner span {
+      color: #00f2ea;
+    }
 
-    @media (max-width:700px) {
-      .modal { padding:14px; }
-      textarea { min-height:110px; }
-      .controls { flex-direction:column; align-items:stretch; }
+    @media (max-width: 700px) {
+      h1 {
+        font-size: 28px;
+      }
+
+      h2 {
+        font-size: 24px;
+      }
+
+      .nav-links {
+        flex-direction: column;
+        gap: 8px;
+      }
     }
   </style>
 </head>
 <body>
 
 <header>
-  <a href="index.html" style="color:white; text-decoration:none; font-size:22px; font-weight:bold;">L.B.V. - Main Page</a>
+  <a href="index.html">L.B.V. - Main Page</a>
 </header>
 
 <main>
   <h1>Renewable Energy: A Sustainable Future</h1>
+
   <section>
     <h2>Introduction to Renewable Energy</h2>
-    <p><!-- Insert your introduction content about renewable energy here --></p>
+    <p>Renewable energy is energy derived from natural sources that are constantly replenished. These include sunlight, wind, rain, tides, waves, geothermal heat, and more. It is the key to a sustainable future, providing a cleaner alternative to fossil fuels.</p>
   </section>
 
   <section>
     <h2>Types of Renewable Energy</h2>
-    <p><!-- Add details about the different types of renewable energy sources like solar, wind, hydro, etc. --></p>
+    <p>There are several types of renewable energy: Solar energy, wind power, hydropower, geothermal energy, and biomass. Each has its own advantages and challenges, contributing in unique ways to the global energy mix.</p>
   </section>
 
   <section>
     <h2>Impact on the Environment</h2>
-    <p><!-- Discuss how renewable energy helps reduce carbon emissions and benefits the environment --></p>
+    <p>Renewable energy helps reduce greenhouse gas emissions and mitigates the impacts of climate change. It leads to cleaner air and water, healthier ecosystems, and decreased reliance on finite resources like oil and coal.</p>
   </section>
 
   <section>
     <h2>How It Works</h2>
-    <p><!-- Provide an explanation of how renewable energy technologies work (e.g., solar panels, wind turbines, etc.) --></p>
+    <p>Solar panels capture sunlight and convert it into electricity. Wind turbines harness the power of the wind. Hydropower uses the flow of water to generate electricity, while geothermal energy taps into heat from within the Earth. These technologies help us shift towards sustainable energy solutions.</p>
   </section>
 
   <section>
     <h2>Renewable Energy Challenges</h2>
-    <p><!-- Discuss challenges related to renewable energy, such as cost, efficiency, and storage --></p>
+    <p>Challenges such as high initial costs, intermittency (e.g., solar energy's reliance on sunlight), and the need for better storage solutions need to be overcome for widespread adoption of renewable energy. However, research and development continue to improve these technologies.</p>
   </section>
-  
+
   <section>
     <h2>Conclusion and Future of Renewable Energy</h2>
-    <p><!-- Provide a conclusion and vision for the future of renewable energy --></p>
+    <p>The future of renewable energy looks promising, with advancements in technology and global investments growing. The transition to clean energy is essential for mitigating climate change and ensuring a sustainable future for all.</p>
   </section>
+
+  <div class="nav-links">
+    <a href="#Introduction">Introduction</a>
+    <a href="#Types">Types of Renewable Energy</a>
+    <a href="#Impact">Impact on the Environment</a>
+    <a href="#HowItWorks">How It Works</a>
+    <a href="#Challenges">Challenges</a>
+    <a href="#Conclusion">Conclusion</a>
+  </div>
+
 </main>
 
 <footer>
-  <p style="margin:0;">© Learn by Video. All rights reserved.</p>
+  <p>&copy; Learn by Video. All rights reserved.</p>
 </footer>
 
 <div class="version-banner">
@@ -120,7 +181,6 @@
 </div>
 
 <script>
-  // fetch version if available
   (function fetchVersion(){
     fetch('/version.txt?nocache=' + Date.now())
       .then(r => r.text())
