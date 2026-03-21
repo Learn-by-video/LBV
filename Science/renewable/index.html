@@ -15,10 +15,18 @@
 
   <style>
     :root {
-      --primary: #003366;
-      --secondary: #002244;
-      --accent: #00f2ea;
-      --text-light: #e6f7f7;
+      --bg: #eef4f8;
+      --surface: #ffffff;
+      --primary: #2d6a8a;
+      --primary-dark: #1f4d66;
+      --text: #1f2d36;
+      --text-light: #4f6673;
+      --line: #d6e3ea;
+      --shadow: 0 10px 26px rgba(23, 55, 73, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     html {
@@ -27,119 +35,188 @@
 
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: var(--primary);
-      color: white;
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      background: linear-gradient(180deg, #f7fbfd 0%, var(--bg) 100%);
+      color: var(--text);
       line-height: 1.6;
+      min-height: 100vh;
     }
 
-    /* HEADER */
     header {
-      background: var(--secondary);
-      padding: 15px;
+      background: var(--primary-dark);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 18px 22px 16px;
       position: sticky;
       top: 0;
       z-index: 1000;
     }
 
-    header a {
-      color: white;
-      text-decoration: none;
-      font-size: 22px;
-      font-weight: bold;
+    .header-bar {
+      max-width: 1180px;
+      margin: 0 auto;
     }
 
-    /* NAVIGATION */
+    .home-link {
+      color: white;
+      text-decoration: none;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+
     nav {
       display: flex;
       justify-content: center;
-      gap: 12px;
+      gap: 10px;
       flex-wrap: wrap;
-      margin-top: 10px;
+      margin-top: 14px;
     }
 
     nav a {
-      background: var(--accent);
-      color: var(--primary);
-      padding: 8px 14px;
-      border-radius: 5px;
+      background: rgba(255, 255, 255, 0.12);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      padding: 9px 14px;
+      border-radius: 8px;
       text-decoration: none;
-      font-weight: bold;
-      font-size: 14px;
-      transition: 0.3s;
+      font-weight: 700;
+      font-size: 0.9rem;
+      transition: background 0.2s ease, transform 0.2s ease;
     }
 
     nav a:hover {
-      background: white;
-      color: var(--primary);
+      background: rgba(255, 255, 255, 0.22);
+      transform: translateY(-1px);
     }
 
-    /* MAIN */
     main {
-      padding: 40px 20px;
+      padding: 32px 20px 56px;
       max-width: 1000px;
       margin: auto;
     }
 
+    .title-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
     h1 {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      line-height: 1.1;
+      margin: 0 0 10px;
+      color: var(--primary-dark);
       text-align: center;
-      color: var(--accent);
-      margin-bottom: 30px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--text-light);
+      margin: 0;
+      font-size: 1rem;
     }
 
     section {
-      background: rgba(255,255,255,0.05);
-      padding: 25px;
-      margin-bottom: 25px;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      background: var(--surface);
+      border: 1px solid var(--line);
+      padding: 24px;
+      margin-bottom: 20px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
     }
 
     h2 {
-      color: var(--text-light);
+      color: var(--primary-dark);
       margin-top: 0;
+      margin-bottom: 12px;
+      font-size: 1.4rem;
+      font-family: Georgia, "Times New Roman", serif;
     }
 
     p {
-      font-size: 17px;
+      font-size: 1rem;
+      color: var(--text-light);
+      margin: 0;
     }
 
-    /* FUTURE CONTENT PLACEHOLDERS */
-    .placeholder {
-      border: 2px dashed var(--accent);
-      padding: 20px;
-      margin-top: 15px;
-      border-radius: 8px;
-      opacity: 0.7;
+    section p + p {
+      margin-top: 12px;
     }
 
-    /* FOOTER */
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--text-light);
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 20px;
+      align-items: start;
+    }
+
+    .content-grid section:nth-child(4),
+    .content-grid section:nth-child(5),
+    .content-grid section:nth-child(6) {
+      grid-column: 1 / -1;
+    }
+
     footer {
-      background: var(--secondary);
+      background: var(--primary-dark);
       text-align: center;
-      padding: 20px;
+      padding: 24px 20px;
       font-size: 14px;
-      margin-top: 40px;
+      color: #dce9f0;
     }
 
     .version-banner {
       position: fixed;
-      bottom: 10px;
-      width: 100%;
-      text-align: center;
-      font-size: 0.9em;
-      opacity: 0.8;
-      color: #ccc;
+      right: 14px;
+      bottom: 14px;
+      width: auto;
+      text-align: right;
+      font-size: 0.8rem;
+      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 6px 12px;
+      box-shadow: 0 8px 20px rgba(23, 55, 73, 0.12);
+      color: var(--text-light);
+      pointer-events: none;
     }
 
     .version-banner span {
-      color: var(--accent);
+      color: var(--primary-dark);
+      font-weight: 800;
     }
 
-    /* MOBILE */
+    @media (max-width: 900px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .content-grid section:nth-child(4),
+      .content-grid section:nth-child(5),
+      .content-grid section:nth-child(6) {
+        grid-column: auto;
+      }
+    }
+
     @media (max-width: 700px) {
+      header {
+        padding-inline: 14px;
+      }
+
       h1 {
-        font-size: 26px;
+        font-size: 2.2rem;
       }
 
       nav {
@@ -148,8 +225,18 @@
       }
 
       nav a {
-        width: 80%;
+        width: 100%;
         text-align: center;
+      }
+
+      .version-banner {
+        position: static;
+        width: auto;
+        text-align: center;
+        padding: 0 0 18px;
+        background: transparent;
+        border: 0;
+        box-shadow: none;
       }
     }
   </style>
@@ -157,58 +244,67 @@
 <body>
 
 <header>
-  <a href="/">L.B.V. - Main Page</a>
+  <div class="header-bar">
+    <a class="home-link" href="/">L.B.V. - Main Page</a>
 
-  <nav>
-    <a href="#Introduction">Introduction</a>
-    <a href="#Types">Types</a>
-    <a href="#Impact">Impact</a>
-    <a href="#HowItWorks">How It Works</a>
-    <a href="#Challenges">Challenges</a>
-    <a href="#Conclusion">Conclusion</a>
-  </nav>
+    <nav>
+      <a href="#Introduction">Introduction</a>
+      <a href="#Types">Types</a>
+      <a href="#Impact">Impact</a>
+      <a href="#HowItWorks">How It Works</a>
+      <a href="#Challenges">Challenges</a>
+      <a href="#Conclusion">Conclusion</a>
+    </nav>
+  </div>
 </header>
 
 <main>
-  <h1>Renewable Energy: A Sustainable Future</h1>
+  <div class="title-card">
+    <h1>Renewable Energy: A Sustainable Future</h1>
+    <p class="subtitle">A science project about different types of renewable energy, how they work, and their impact on the environment.</p>
+  </div>
 
-  <section id="Introduction">
-    <h2>Introduction to Renewable Energy</h2>
-    <p>Renewable energy is revolutionary to the energy crisis we have on our hands. It is will never run out unlike Non-renewable energy, plus renewable energy is clean + safe for the environment.</p>
-  </section>
+  <div class="content-grid">
+    <section id="Introduction">
+      <h2>Introduction to Renewable Energy</h2>
+      <p>Renewable energy is revolutionary to the energy crisis we have on our hands. It is will never run out unlike Non-renewable energy, plus renewable energy is clean + safe for the environment.</p>
+    </section>
 
-  <section id="Types">
-    <h2>Types of Renewable Energy</h2>
-    <ul>
-      <li>Solar</li>
-      <li>Wind</li>
-      <li>Hydropower</li>
-      <li>Biomass</li>
-      <li>Geothermal</li>
-    </ul>
-  </section>
+    <section id="Types">
+      <h2>Types of Renewable Energy</h2>
+      <ul>
+        <li>Solar</li>
+        <li>Wind</li>
+        <li>Hydropower</li>
+        <li>Biomass</li>
+        <li>Geothermal</li>
+      </ul>
+    </section>
 
-  <section id="Impact">
-    <h2>Impact on the Environment</h2>
-    <p>Most renewable energy is safe to the environment, but some renewable energy affects the environment, like biomass, which creates greenhouse gases that affects the atmosphere, causing global warming. </p>
-  </section>
+    <section id="Impact">
+      <h2>Impact on the Environment</h2>
+      <p>Most renewable energy is safe to the environment, but some renewable energy affects the environment, like biomass, which creates greenhouse gases that affects the atmosphere, causing global warming. </p>
+    </section>
 
-  <section id="HowItWorks">
-    <h2>How It Works</h2>
-    <p>Renewable energy works in different ways; for example, biomass is leftover organic matter that is burned to power generators.</p>
-    <p>Another form of renewable energy is solar energy. It uses solar panels to power houses and other appliances.</p>
-    <p>The last form of renewable energy is wind energy. People build turbines that spin when a sufficient amount of wind is blowing past them, generating energy to power equipment.</p>
-  </section>
+    <section id="HowItWorks">
+      <h2>How It Works</h2>
+      <p>Renewable energy works in different ways; for example, biomass is leftover organic matter that is burned to power generators.</p>
+      <p>Another form of renewable energy is solar energy. It uses solar panels to power houses and other appliances.</p>
+      <p>The last form of renewable energy is wind energy. People build turbines that spin when a sufficient amount of wind is blowing past them, generating energy to power equipment.</p>
+    </section>
 
-  <section id="Challenges">
-    <h2>Renewable Energy Challenges</h2>
-    <p>Some challenges for wind energy is when there isn't enough wind to spin the turbine</p>
-  </section>
+    <section id="Challenges">
+      <h2>Renewable Energy Challenges</h2>
+      <p>Some challenges for wind energy is when there isn't enough wind to spin the turbine.</p>
+      <p>Also a challenge for solar energy is if it is a cloudy day or it's night time you won't get any energy.</p>
+    </section>
 
-  <section id="Conclusion">
-    <h2>Conclusion and Future of Renewable Energy</h2>
-    <p><!-- YOU FILL THIS --></p>
-  </section>
+    <section id="Conclusion">
+      <h2>Conclusion and Future of Renewable Energy</h2>
+      <p>In 2024, renewable energy sources provided roughly 22.7% to 24% (energy.gov)</p>
+      <p>This shows us that we are starting to switch to reneable, but it is going to be hard because our curent infurstructure is already built on nonrenewable energy sources.</p>
+    </section>
+  </div>
 
 </main>
 
